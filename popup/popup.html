@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastKeys</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <h2>FastKeys</h2>
+      <input type="text" id="popup-search" placeholder="Search templates..." class="search-input">
+    </div>
+    <div class="popup-content">
+      <div id="recent-section" class="section">
+        <h3>Recent</h3>
+        <div id="recent-templates" class="templates-list"></div>
+      </div>
+      <div id="all-section" class="section">
+        <h3>All Templates</h3>
+        <div id="all-templates" class="templates-list"></div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

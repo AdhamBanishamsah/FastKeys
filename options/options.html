@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastKeys - Options</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="tabs">
+        <button class="tab active" data-tab="templates">Templates</button>
+        <button class="tab" data-tab="automations">Automations</button>
+      </div>
+    </header>
+
+    <div id="templates-panel" class="panel active">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <label class="checkbox-wrapper">
+            <input type="checkbox" id="select-all">
+            <span>Select All</span>
+          </label>
+          <div class="dropdown-wrapper">
+            <button class="btn btn-primary" id="create-btn">
+              Create <span class="arrow">▼</span>
+            </button>
+            <div class="dropdown-menu" id="create-dropdown">
+              <a href="#" id="create-new">New Template</a>
+              <a href="#" id="import-templates">Import Templates</a>
+            </div>
+          </div>
+          <button class="btn" id="share-btn">Share</button>
+          <button class="btn" id="export-all-btn">Export All</button>
+          <button class="btn" id="tags-btn">Tags</button>
+          <button class="btn btn-danger" id="delete-btn">Delete</button>
+        </div>
+        <div class="toolbar-right">
+          <div class="dropdown-wrapper">
+            <button class="btn" id="filter-tags-btn">
+              Filter by Tag <span class="arrow">▼</span>
+            </button>
+            <div class="dropdown-menu" id="filter-tags-dropdown">
+              <a href="#" data-tag="all">All Templates</a>
+              <div class="dropdown-divider"></div>
+            </div>
+          </div>
+          <input type="text" id="search-input" placeholder="Search templates..." class="search-input">
+        </div>
+      </div>
+
+      <div class="editor-panel">
+        <div class="editor-header">
+          <input type="text" id="trigger-input" placeholder="Trigger (e.g., _vpn)" class="trigger-input">
+          <div class="editor-actions">
+            <button class="btn btn-success" id="save-btn">Save</button>
+            <button class="btn" id="discard-btn">Discard</button>
+          </div>
+        </div>
+        <div class="editor-tags-section">
+          <label>Tags:</label>
+          <div id="editor-tags-container" class="editor-tags-container"></div>
+          <div class="dropdown-wrapper">
+            <button class="btn btn-small" id="add-tag-btn">+ Add Tag ▼</button>
+            <div class="dropdown-menu" id="editor-tag-dropdown">
+              <div class="tag-select-list" id="tag-select-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="editor-toolbar">
+          <button class="toolbar-btn" data-command="bold" title="Bold">B</button>
+          <button class="toolbar-btn" data-command="italic" title="Italic">I</button>
+          <button class="toolbar-btn" data-command="underline" title="Underline">U</button>
+          <button class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List">•</button>
+          <button class="toolbar-btn" data-command="createLink" title="Link">🔗</button>
+          <div class="dropdown-wrapper">
+            <button class="toolbar-btn" id="insert-variable-btn">Insert Variable ▼</button>
+            <div class="dropdown-menu" id="variable-dropdown">
+              <a href="#" data-variable="first_name">First Name</a>
+              <a href="#" data-variable="last_name">Last Name</a>
+              <a href="#" data-variable="email">Email</a>
+              <div class="dropdown-divider"></div>
+              <div id="custom-variables-dropdown"></div>
+            </div>
+          </div>
+          <div class="dropdown-wrapper">
+            <button class="toolbar-btn" id="insert-date-btn">Insert Date ▼</button>
+            <div class="dropdown-menu" id="date-dropdown">
+              <a href="#" data-format="long">January 22nd, 2026</a>
+              <a href="#" data-format="short">01/22/2026</a>
+              <a href="#" data-format="weekday_long">Thursday January 22nd, 2026</a>
+              <a href="#" data-format="long_time">January 22nd, 2026, 11:09 am</a>
+            </div>
+          </div>
+          <button class="toolbar-btn" id="view-html-btn">View HTML</button>
+        </div>
+        <div class="editor-content" id="editor-content" contenteditable="true"></div>
+      </div>
+
+      <div class="templates-list" id="templates-list"></div>
+    </div>
+
+    <div id="automations-panel" class="panel">
+      <div class="settings-panel">
+        <h2>Settings</h2>
+        
+        <div class="settings-section">
+          <h3>About FastKeys</h3>
+          <p class="settings-description">
+            FastKeys v1.0.0<br>
+            Text expander and autofill extension with template management.
+          </p>
+        </div>
+        
+        <div class="settings-section">
+          <h3>Profile Variables</h3>
+          <p class="settings-description">Edit your profile information that will be used to fill template variables. You can add custom variables as needed.</p>
+          
+          <div class="settings-form">
+            <div class="form-group">
+              <label for="profile-first-name">First Name</label>
+              <input type="text" id="profile-first-name" placeholder="Enter your first name">
+            </div>
+            
+            <div class="form-group">
+              <label for="profile-last-name">Last Name</label>
+              <input type="text" id="profile-last-name" placeholder="Enter your last name">
+            </div>
+            
+            <div class="form-group">
+              <label for="profile-email">Email</label>
+              <input type="email" id="profile-email" placeholder="Enter your email">
+            </div>
+            
+            <div id="custom-variables-container"></div>
+            
+            <div class="form-group">
+              <button class="btn" id="add-variable-btn">+ Add Custom Variable</button>
+            </div>
+            
+            <button class="btn btn-success" id="save-profile-btn">Save Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tags Dropdown -->
+  <div class="tags-dropdown" id="tags-dropdown">
+    <div class="tags-list" id="tags-list"></div>
+    <div class="tags-footer">
+      <button class="btn btn-primary" id="create-tag-btn">Create New</button>
+    </div>
+  </div>
+
+  <!-- HTML View Modal -->
+  <div class="modal" id="html-modal">
+    <div class="modal-content">
+      <h3>Edit HTML</h3>
+      <textarea id="html-editor" rows="15"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-success" id="save-html-btn">Save</button>
+        <button class="btn" id="cancel-html-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Tag Modal -->
+  <div class="modal" id="tag-modal">
+    <div class="modal-content">
+      <h3 id="tag-modal-title">Create Tag</h3>
+      <input type="text" id="tag-name-input" placeholder="Tag name">
+      <div class="modal-actions">
+        <button class="btn btn-success" id="save-tag-btn">Save</button>
+        <button class="btn" id="cancel-tag-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
