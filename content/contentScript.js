@@ -1,4 +1,5 @@
 // Inline storage utilities (content scripts can't use ES modules in MV3)
+// Version: 1.0.1 - Fixed async/await in showAutofillPanel
 const storage = {
   async get(key) {
     try {
@@ -31,27 +32,90 @@ const storage = {
   }
 };
 
-// Date formatting utilities
-const formatDate = (format = 'long') => {
+// Date formatting utilities with multi-language support
+const translations = {
+  en: { months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'], weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  no: { months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'], weekdays: ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  es: { months: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'], weekdays: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  fr: { months: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'], weekdays: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  de: { months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'], weekdays: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  it: { months: ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'], weekdays: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  pt: { months: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'], weekdays: ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  nl: { months: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'], weekdays: ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  sv: { months: ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december'], weekdays: ['söndag', 'måndag', 'tisdag', 'onsdag', 'torsdag', 'fredag', 'lördag'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  da: { months: ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'], weekdays: ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'], hijriMonths: ['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'] },
+  ar: { months: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'], weekdays: ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'], hijriMonths: ['محرم', 'صفر', 'ربيع الأول', 'ربيع الثاني', 'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان', 'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'] }
+};
+
+const formatDateWithTemplate = (template, lang = 'en') => {
+  const now = new Date();
+  const t = translations[lang] || translations.en;
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const day = now.getDate();
+  const weekday = now.getDay();
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  const seconds = now.getSeconds();
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  const displayHours12 = hours % 12 || 12;
+  const monthName = t.months[month];
+  const monthAbbr = monthName.slice(0, 3);
+  const weekdayName = t.weekdays[weekday];
+  const weekdayAbbr = weekdayName.slice(0, 3);
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const tokens = {
+    '%Y': String(year), '%y': String(year).slice(-2), '%m': pad2(month + 1), '%d': pad2(day),
+    '%H': pad2(hours), '%M': pad2(minutes), '%S': pad2(seconds), '%I': pad2(displayHours12),
+    '%p': ampm.toUpperCase(), '%B': monthName, '%b': monthAbbr, '%A': weekdayName, '%a': weekdayAbbr
+  };
+  let out = '';
+  for (let i = 0; i < template.length; i++) {
+    if (template[i] === '%' && template[i + 1] === '%') { out += '%'; i += 1; continue; }
+    if (template[i] === '%' && template[i + 1]) {
+      const two = template.slice(i, i + 2);
+      if (tokens[two] !== undefined) { out += tokens[two]; i += 1; continue; }
+    }
+    out += template[i];
+  }
+  return out;
+};
+
+const formatDate = (format = 'long', lang = 'en', customFormats = null) => {
+  if (customFormats && typeof customFormats[format] === 'string') {
+    return formatDateWithTemplate(customFormats[format], lang);
+  }
+  const t = translations[lang] || translations.en;
   const getOrdinalSuffix = (day) => {
+    if (lang === 'ar') return '';
     if (day > 3 && day < 21) return 'th';
     switch (day % 10) {
-      case 1: return 'st';
-      case 2: return 'nd';
-      case 3: return 'rd';
+      case 1: return lang === 'no' || lang === 'da' ? '.' : 'st';
+      case 2: return lang === 'no' || lang === 'da' ? '.' : 'nd';
+      case 3: return lang === 'no' || lang === 'da' ? '.' : 'rd';
       default: return 'th';
     }
   };
-  const formatMonth = (month) => {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'];
-    return months[month];
+  const formatMonth = (month) => t.months[month];
+  const formatWeekday = (day) => t.weekdays[day];
+  const gregorianToHijri = (date) => {
+    const gregorianEpoch = new Date(622, 6, 16);
+    const diffTime = date - gregorianEpoch;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    let hijriYear = Math.floor(diffDays / 354.367) + 1;
+    let remainingDays = diffDays % 354.367;
+    let hijriMonth = Math.floor(remainingDays / 29.5) + 1;
+    let hijriDay = Math.floor(remainingDays % 29.5) + 1;
+    const hijriMonthLengths = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+    if (hijriDay > hijriMonthLengths[(hijriMonth - 1) % 12]) {
+      hijriDay = hijriMonthLengths[(hijriMonth - 1) % 12];
+    }
+    if (hijriMonth > 12) hijriMonth = 12;
+    if (hijriDay < 1) hijriDay = 1;
+    if (hijriDay > 30) hijriDay = 30;
+    return { year: hijriYear, month: hijriMonth, day: hijriDay };
   };
-  const formatWeekday = (day) => {
-    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return weekdays[day];
-  };
-
+  const formatHijriMonth = (month) => t.hijriMonths[month - 1] || '';
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
@@ -62,18 +126,31 @@ const formatDate = (format = 'long') => {
   const ampm = hours >= 12 ? 'pm' : 'am';
   const displayHours = hours % 12 || 12;
   const displayMinutes = minutes.toString().padStart(2, '0');
-
+  if (format.startsWith('hijri_')) {
+    const hijri = gregorianToHijri(now);
+    const hijriMonthName = formatHijriMonth(hijri.month);
+    switch (format) {
+      case 'hijri_long': return `${hijri.day} ${hijriMonthName} ${hijri.year}`;
+      case 'hijri_short': return `${hijri.day.toString().padStart(2, '0')}/${hijri.month.toString().padStart(2, '0')}/${hijri.year}`;
+      case 'hijri_full': return `${hijri.day} ${hijriMonthName} ${hijri.year} AH`;
+      case 'hijri_weekday': return `${formatWeekday(weekday)} ${hijri.day} ${hijriMonthName} ${hijri.year}`;
+      default: return `${hijri.day} ${hijriMonthName} ${hijri.year}`;
+    }
+  }
+  const monthName = formatMonth(month);
+  const weekdayName = formatWeekday(weekday);
+  const ordinal = getOrdinalSuffix(day);
   switch (format) {
-    case 'long':
-      return `${formatMonth(month)} ${day}${getOrdinalSuffix(day)}, ${year}`;
-    case 'short':
-      return `${(month + 1).toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
-    case 'weekday_long':
-      return `${formatWeekday(weekday)} ${formatMonth(month)} ${day}${getOrdinalSuffix(day)}, ${year}`;
-    case 'long_time':
-      return `${formatMonth(month)} ${day}${getOrdinalSuffix(day)}, ${year}, ${displayHours}:${displayMinutes} ${ampm}`;
-    default:
-      return `${formatMonth(month)} ${day}${getOrdinalSuffix(day)}, ${year}`;
+    case 'long': return `${monthName} ${day}${ordinal}, ${year}`;
+    case 'short': return `${(month + 1).toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
+    case 'iso': return `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    case 'weekday_long': return `${weekdayName} ${monthName} ${day}${ordinal}, ${year}`;
+    case 'long_time': return `${monthName} ${day}${ordinal}, ${year}, ${displayHours}:${displayMinutes} ${ampm}`;
+    case 'short_time': return `${(month + 1).toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year} ${displayHours}:${displayMinutes} ${ampm.toUpperCase()}`;
+    case 'time_only': return `${displayHours}:${displayMinutes} ${ampm}`;
+    case 'month_year': return `${monthName} ${year}`;
+    case 'day_month': return `${day} ${monthName}`;
+    default: return `${monthName} ${day}${ordinal}, ${year}`;
   }
 };
 
@@ -82,8 +159,8 @@ const processTemplate = async (templateBody, profile = {}) => {
   let processed = templateBody;
   
   // Replace date variables
-  processed = processed.replace(/\{\{date:(\w+)\}\}/g, (match, format) => formatDate(format));
-  processed = processed.replace(/\{\{date\}\}/g, () => formatDate('long'));
+  processed = processed.replace(/\{\{date:(\w+)\}\}/g, (match, format) => formatDate(format, language, customDateFormats));
+  processed = processed.replace(/\{\{date\}\}/g, () => formatDate('long', language, customDateFormats));
   
   // Replace standard profile variables
   processed = processed.replace(/\{\{first_name\}\}/g, profile.first_name || '{{first_name}}');
@@ -111,11 +188,15 @@ const processTemplate = async (templateBody, profile = {}) => {
 
 let templates = [];
 let profile = {};
+let language = 'en';
+let customDateFormats = {};
 
 const loadTemplates = async () => {
   templates = await storage.getTemplates();
   const settings = await storage.getSettings();
   profile = settings.profile || {};
+  language = settings.language || 'en';
+  customDateFormats = settings.customDateFormats || {};
 };
 
 const saveProfile = async (newProfile) => {
@@ -172,7 +253,7 @@ const insertText = (element, text, isHTML = false) => {
     element.value = value.slice(0, start) + text + value.slice(end);
     element.selectionStart = element.selectionEnd = start + text.length;
     element.dispatchEvent(new Event('input', { bubbles: true }));
-  } else if (element.isContentEditable) {
+  } else if (isEditableRichElement(element)) {
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
@@ -205,6 +286,10 @@ const insertText = (element, text, isHTML = false) => {
 };
 
 const showAutofillPanel = async (element, template, variables) => {
+  // Get language from settings first (outside Promise)
+  const settings = await storage.getSettings();
+  const lang = settings.language || 'en';
+  
   return new Promise((resolve) => {
     const getVariableValue = (varName) => {
       // Check standard fields
@@ -221,18 +306,39 @@ const showAutofillPanel = async (element, template, variables) => {
       return varName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     };
     
+    // Simple translations for autofill panel
+    const translations = {
+      en: { fillInfo: 'Fill in missing information', insert: 'Insert', cancel: 'Cancel' },
+      no: { fillInfo: 'Fyll inn manglende informasjon', insert: 'Sett inn', cancel: 'Avbryt' },
+      es: { fillInfo: 'Completa la información faltante', insert: 'Insertar', cancel: 'Cancelar' },
+      fr: { fillInfo: 'Remplir les informations manquantes', insert: 'Insérer', cancel: 'Annuler' },
+      de: { fillInfo: 'Fehlende Informationen ausfüllen', insert: 'Einfügen', cancel: 'Abbrechen' },
+      it: { fillInfo: 'Compila le informazioni mancanti', insert: 'Inserisci', cancel: 'Annulla' },
+      pt: { fillInfo: 'Preencha as informações faltantes', insert: 'Inserir', cancel: 'Cancelar' },
+      nl: { fillInfo: 'Vul ontbrekende informatie in', insert: 'Invoegen', cancel: 'Annuleren' },
+      sv: { fillInfo: 'Fyll i saknad information', insert: 'Infoga', cancel: 'Avbryt' },
+      da: { fillInfo: 'Udfyld manglende oplysninger', insert: 'Indsæt', cancel: 'Annuller' },
+      ar: { fillInfo: 'املأ المعلومات المفقودة', insert: 'إدراج', cancel: 'إلغاء' }
+    };
+    const t = translations[lang] || translations.en;
+    
     const panel = document.createElement('div');
     panel.className = 'magical-autofill-panel';
     panel.innerHTML = `
-      <h4>Fill in missing information</h4>
+      <h4>${t.fillInfo}</h4>
       ${variables.map(v => `
-        <input type="text" 
-               id="magical-${v}" 
-               placeholder="${formatVariableName(v)}"
-               value="${getVariableValue(v)}">
+        <div class="form-group">
+          <label for="magical-${v}">${formatVariableName(v)}</label>
+          <input type="text" 
+                 id="magical-${v}" 
+                 placeholder="Enter ${formatVariableName(v).toLowerCase()}"
+                 value="${getVariableValue(v)}">
+        </div>
       `).join('')}
-      <button id="magical-submit">Insert</button>
-      <button class="secondary" id="magical-cancel">Cancel</button>
+      <div class="button-group">
+        <button id="magical-submit">${t.insert}</button>
+        <button class="secondary" id="magical-cancel">${t.cancel}</button>
+      </div>
     `;
 
     const rect = element.getBoundingClientRect();
@@ -314,7 +420,7 @@ const expandTrigger = async (element, template, delimiter, skipTriggerCheck = fa
       finalProfile = { ...profile, ...inputProfile };
     }
 
-    const isHTML = element.isContentEditable;
+    const isHTML = isEditableRichElement(element);
     const processedBody = await processTemplate(
       isHTML ? template.bodyHtml : template.bodyText,
       finalProfile
@@ -325,12 +431,17 @@ const expandTrigger = async (element, template, delimiter, skipTriggerCheck = fa
   }
 
   // Get trigger match before processing (for keyboard expansion)
-  const textBefore = element.isContentEditable 
-    ? (element.innerText || element.textContent)
-    : element.value;
-  const cursorPos = element.isContentEditable
-    ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0)
-    : element.selectionStart;
+  const isRich = isEditableRichElement(element);
+  let textBefore;
+  let cursorPos;
+  if (isRich) {
+    const rich = getTextAndCursorFromContentEditable(element);
+    textBefore = rich.text;
+    cursorPos = rich.cursorPos;
+  } else {
+    textBefore = element.value || '';
+    cursorPos = element.selectionStart != null ? element.selectionStart : textBefore.length;
+  }
 
   const triggerMatch = findTrigger(textBefore, cursorPos);
   if (!triggerMatch) return false;
@@ -351,7 +462,7 @@ const expandTrigger = async (element, template, delimiter, skipTriggerCheck = fa
   }
 
   // Process template
-  const isHTML = element.isContentEditable;
+  const isHTML = isEditableRichElement(element);
   const processedBody = await processTemplate(
     isHTML ? template.bodyHtml : template.bodyText,
     finalProfile
@@ -414,11 +525,55 @@ const expandTrigger = async (element, template, delimiter, skipTriggerCheck = fa
     const event = new Event('input', { bubbles: true });
     Object.defineProperty(event, 'target', { value: element, enumerable: true });
     element.dispatchEvent(event);
-  } else if (element.isContentEditable || element.getAttribute('contenteditable') === 'true') {
+  } else if (isEditableRichElement(element)) {
     const selection = window.getSelection();
+    
+    // For Power Apps and complex editors, ensure we have a valid selection
+    if (selection.rangeCount === 0) {
+      // Try to create a range at the end of the element
+      try {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } catch (e) {
+        // If that fails, try to find any text node
+        const walker = document.createTreeWalker(
+          element,
+          NodeFilter.SHOW_TEXT,
+          null
+        );
+        const textNode = walker.nextNode();
+        if (textNode) {
+          const range = document.createRange();
+          range.selectNodeContents(textNode);
+          range.collapse(false);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } else {
+          return false;
+        }
+      }
+    }
+    
     if (selection.rangeCount === 0) return false;
     
     const range = selection.getRangeAt(0);
+    
+    // Ensure range is within the element (for Power Apps nested structures)
+    if (!element.contains(range.commonAncestorContainer)) {
+      // Range is outside, create new range at end
+      try {
+        const newRange = document.createRange();
+        newRange.selectNodeContents(element);
+        newRange.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      } catch (e) {
+        return false;
+      }
+    }
     
     // Try to find and replace the trigger in the DOM
     // First, try to find the text node containing the trigger
@@ -624,7 +779,7 @@ const insertProcessedContent = async (element, processedBody, delimiter, isHTML)
     }
     
     return true;
-  } else if (element.isContentEditable) {
+  } else if (isEditableRichElement(element)) {
     const selection = window.getSelection();
     if (selection.rangeCount === 0) return false;
     
@@ -679,11 +834,14 @@ const insertProcessedContent = async (element, processedBody, delimiter, isHTML)
 };
 
 const getContentEditableElement = (element) => {
+  // Kendo Editor and similar: iframe with designMode. Body is the editable root.
+  if (document.designMode === 'on' && document.body && (element === document.body || document.body.contains(element))) {
+    return document.body;
+  }
   // Check if element itself is contenteditable
-  if (element.isContentEditable) {
+  if (element && element.isContentEditable) {
     return element;
   }
-  
   // Check parent elements
   let current = element;
   while (current && current !== document.body) {
@@ -692,25 +850,70 @@ const getContentEditableElement = (element) => {
     }
     current = current.parentElement;
   }
-  
   return null;
+};
+
+/** True if element should use rich (contenteditable/designMode) insertion rather than input/textarea. */
+const isEditableRichElement = (element) => {
+  if (!element) return false;
+  if (element === document.body && document.designMode === 'on') return true;
+  return !!element.isContentEditable || element.getAttribute('contenteditable') === 'true';
 };
 
 const getTextAndCursorFromContentEditable = (element) => {
   const selection = window.getSelection();
+  
+  // For Power Apps and complex editors, ensure we have a selection
   if (selection.rangeCount === 0) {
-    // No selection, get all text and position at end
+    // Try to create a range at the end
+    try {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } catch (e) {
+      // Fallback: get all text and position at end
+      const text = element.innerText || element.textContent || '';
+      return { text, cursorPos: text.length };
+    }
+  }
+  
+  if (selection.rangeCount === 0) {
     const text = element.innerText || element.textContent || '';
     return { text, cursorPos: text.length };
   }
   
   const range = selection.getRangeAt(0);
+  
+  // Check if range is within the element (for Power Apps nested structures)
+  if (!element.contains(range.commonAncestorContainer)) {
+    // Range is outside, create new range at end
+    try {
+      const newRange = document.createRange();
+      newRange.selectNodeContents(element);
+      newRange.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(newRange);
+      const text = element.innerText || element.textContent || '';
+      return { text, cursorPos: text.length };
+    } catch (e) {
+      const text = element.innerText || element.textContent || '';
+      return { text, cursorPos: text.length };
+    }
+  }
+  
   const textNode = range.startContainer;
   
   // If we're in a text node, use it directly
   if (textNode.nodeType === Node.TEXT_NODE) {
-    const text = textNode.textContent;
-    const cursorPos = range.startOffset;
+    // Need to get full text of element, not just text node
+    const text = element.innerText || element.textContent || '';
+    // Calculate cursor position in full text
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(element);
+    preCaretRange.setEnd(range.startContainer, range.startOffset);
+    const cursorPos = preCaretRange.toString().length;
     return { text, cursorPos };
   }
   
@@ -748,21 +951,22 @@ const getTextAndCursorFromContentEditable = (element) => {
     if (found) break;
   }
   
-  // If we didn't find it, cursor is at the end
+  // If we didn't find it, calculate using range
   if (!found) {
-    cursorPos = text.length;
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(element);
+    preCaretRange.setEnd(range.startContainer, range.startOffset);
+    text = element.innerText || element.textContent || '';
+    cursorPos = preCaretRange.toString().length;
   }
   
   return { text, cursorPos };
 };
 
 const handleKeyDown = async (e) => {
-  // Skip if no templates loaded
   if (templates.length === 0) return;
-  
   let element = e.target;
-  
-  // Check for password fields
+  if (!element || typeof element.tagName !== 'string') return;
   if (element.type === 'password') return;
   
   // Check if it's a standard input/textarea (including nested elements)
@@ -884,14 +1088,48 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       try {
         // Find the active element - try multiple methods
         let activeElement = document.activeElement;
+        let targetDoc = document;
+        let targetWindow = window;
+        
+        // Check if activeElement is an iframe (Kendo Editor, etc.)
+        if (activeElement && activeElement.tagName === 'IFRAME') {
+          try {
+            // Try to access iframe's document (same-origin only)
+            const iframeDoc = activeElement.contentDocument || activeElement.contentWindow?.document;
+            if (iframeDoc) {
+              targetDoc = iframeDoc;
+              targetWindow = activeElement.contentWindow;
+              // Check for designMode body (Kendo Editor)
+              if (iframeDoc.designMode === 'on' && iframeDoc.body) {
+                activeElement = iframeDoc.body;
+              } else {
+                // Check for contenteditable in iframe
+                const iframeContentEditable = iframeDoc.querySelector('[contenteditable="true"]') || 
+                                             (iframeDoc.body?.isContentEditable ? iframeDoc.body : null);
+                if (iframeContentEditable) {
+                  activeElement = iframeContentEditable;
+                } else {
+                  // Check for textarea/input in iframe
+                  const iframeInput = iframeDoc.querySelector('textarea, input[type="text"], input:not([type])');
+                  if (iframeInput) {
+                    activeElement = iframeInput;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            // Cross-origin iframe - can't access
+            console.warn('Cannot access iframe content (may be cross-origin):', e);
+          }
+        }
         
         // If activeElement is not an input, try to find contenteditable ancestor
-        if (activeElement && !activeElement.isContentEditable && 
+        if (activeElement && !isEditableRichElement(activeElement) && 
             activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA') {
           // Check if we're inside a contenteditable element
           let parent = activeElement.parentElement;
-          while (parent && parent !== document.body) {
-            if (parent.isContentEditable) {
+          while (parent && parent !== targetDoc.body) {
+            if (isEditableRichElement(parent)) {
               activeElement = parent;
               break;
             }
@@ -899,33 +1137,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           }
         }
         
-        // Also try finding any focused contenteditable
-        if (!activeElement || (!activeElement.isContentEditable && 
+        // Also try finding any focused contenteditable or designMode body
+        if (!activeElement || (!isEditableRichElement(activeElement) && 
             activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA')) {
-          // Try to find contenteditable elements
-          const contentEditables = document.querySelectorAll('[contenteditable="true"]');
-          if (contentEditables.length > 0) {
-            // Use the first one or one that contains selection
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-              const range = selection.getRangeAt(0);
-              for (const elem of contentEditables) {
-                if (elem.contains(range.commonAncestorContainer)) {
-                  activeElement = elem;
-                  break;
+          // Check for designMode body in current document
+          if (targetDoc.designMode === 'on' && targetDoc.body) {
+            activeElement = targetDoc.body;
+          } else {
+            // Try to find contenteditable elements
+            const contentEditables = targetDoc.querySelectorAll('[contenteditable="true"]');
+            if (contentEditables.length > 0) {
+              // Use the first one or one that contains selection
+              const selection = targetWindow.getSelection();
+              if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                for (const elem of contentEditables) {
+                  if (elem.contains(range.commonAncestorContainer)) {
+                    activeElement = elem;
+                    break;
+                  }
                 }
               }
-            }
-            if (!activeElement || (!activeElement.isContentEditable && 
-                activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA')) {
-              activeElement = contentEditables[0];
+              if (!activeElement || (!isEditableRichElement(activeElement) && 
+                  activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA')) {
+                activeElement = contentEditables[0];
+              }
             }
           }
         }
         
         if (activeElement && (activeElement.tagName === 'INPUT' || 
                              activeElement.tagName === 'TEXTAREA' || 
-                             activeElement.isContentEditable)) {
+                             isEditableRichElement(activeElement))) {
           try {
             const result = await expandTrigger(activeElement, message.template, ' ', true);
             sendResponse({ success: result });
@@ -1071,6 +1314,10 @@ const attachDirectListeners = () => {
   inputs.forEach(input => {
     if (input.type === 'password') return;
     
+    // Skip if already attached
+    if (input._magicalAttached) return;
+    input._magicalAttached = true;
+    
     // Remove existing listeners if any
     if (input._magicalKeydownListener) {
       input.removeEventListener('keydown', input._magicalKeydownListener, true);
@@ -1096,6 +1343,39 @@ const attachDirectListeners = () => {
     // Also monitor value directly for React/Vue controlled inputs
     monitorElementValue(input);
   });
+  
+  // Attach to contenteditable elements (Power Apps, etc.)
+  const contentEditables = document.querySelectorAll('[contenteditable="true"], [contenteditable=""]');
+  contentEditables.forEach(element => {
+    // Skip if already attached
+    if (element._magicalAttached) return;
+    element._magicalAttached = true;
+    
+    // Remove existing listeners if any
+    if (element._magicalKeydownListener) {
+      element.removeEventListener('keydown', element._magicalKeydownListener, true);
+    }
+    if (element._magicalInputListener) {
+      element.removeEventListener('input', element._magicalInputListener, true);
+    }
+    
+    // Add keydown listener
+    const keydownListener = (e) => {
+      handleKeyDown(e);
+    };
+    element._magicalKeydownListener = keydownListener;
+    element.addEventListener('keydown', keydownListener, true);
+    
+    // Add input listener
+    const inputListener = (e) => {
+      handleInput(e);
+    };
+    element._magicalInputListener = inputListener;
+    element.addEventListener('input', inputListener, true);
+    
+    // Monitor for Power Apps and other complex editors
+    monitorElementValue(element);
+  });
 };
 
 // Watch for new textareas/inputs being added to the page
@@ -1108,9 +1388,13 @@ const observer = new MutationObserver((mutations) => {
             (node.tagName === 'INPUT' && (node.type === 'text' || !node.type))) {
           shouldReattach = true;
         }
+        // Check for contenteditable elements (Power Apps, etc.)
+        if (node.isContentEditable || node.getAttribute?.('contenteditable') === 'true') {
+          shouldReattach = true;
+        }
         // Also check children
         if (node.querySelectorAll) {
-          const inputs = node.querySelectorAll('textarea, input[type="text"], input:not([type])');
+          const inputs = node.querySelectorAll('textarea, input[type="text"], input:not([type]), [contenteditable="true"]');
           if (inputs.length > 0) {
             shouldReattach = true;
           }
@@ -1126,23 +1410,44 @@ const observer = new MutationObserver((mutations) => {
 
 // Initialize
 (async () => {
-  await loadTemplates();
+  // Run in main frame or in Kendo Editor iframes only (editable iframe with .k-content / .k-editable-area).
+  // Skip all other iframes (ads, embeds, etc.) to avoid wasted work.
+  const isMainFrame = (window === window.top);
+  const frameEl = typeof window.frameElement !== 'undefined' ? window.frameElement : null;
   
+  // Check if this is a Kendo Editor iframe:
+  // 1. Iframe has class="k-content" or is inside .k-editable-area
+  // 2. OR iframe document has designMode="on" (Kendo sets this)
+  const hasKendoClass = frameEl && (
+    frameEl.classList?.contains('k-content') ||
+    (typeof frameEl.closest === 'function' && frameEl.closest('.k-editable-area'))
+  );
+  const hasDesignMode = !isMainFrame && document.designMode === 'on';
+  const isKendoIframe = !isMainFrame && (hasKendoClass || hasDesignMode);
+  
+  if (!isMainFrame && !isKendoIframe) {
+    return;
+  }
+
+  await loadTemplates();
+
   // Use capture phase to catch events before page scripts
   document.addEventListener('keydown', handleKeyDown, true);
-  
+
   // Also listen on window for better coverage
   window.addEventListener('keydown', handleKeyDown, true);
-  
-  // Attach listeners directly to existing inputs
+
+  // Attach listeners directly to existing inputs (and Kendo designMode body)
   attachDirectListeners();
-  
+
   // Watch for dynamically added inputs
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-  
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
   // Also try attaching when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', attachDirectListeners);
@@ -1192,6 +1497,41 @@ const observer = new MutationObserver((mutations) => {
   // Try to attach to specific textarea immediately and periodically
   attachToSpecificTextarea();
   setInterval(attachToSpecificTextarea, 1000);
+  
+  // Power Apps specific: Monitor for Power Apps formula bars and canvas elements
+  const attachToPowerAppsElements = () => {
+    // Look for Power Apps formula bar (often has specific classes or attributes)
+    const powerAppsInputs = document.querySelectorAll(
+      '[role="textbox"], ' +
+      '[data-automation-id*="formula"], ' +
+      '[class*="formula"], ' +
+      '[class*="FormulaBar"], ' +
+      'div[contenteditable="true"]:not([class*="magical"])'
+    );
+    
+    powerAppsInputs.forEach(input => {
+      if (input._magicalAttached) return;
+      input._magicalAttached = true;
+      
+      const keydownListener = (e) => {
+        handleKeyDown(e);
+      };
+      input._magicalKeydownListener = keydownListener;
+      input.addEventListener('keydown', keydownListener, true);
+      
+      const inputListener = (e) => {
+        handleInput(e);
+      };
+      input._magicalInputListener = inputListener;
+      input.addEventListener('input', inputListener, true);
+      
+      monitorElementValue(input);
+    });
+  };
+  
+  // Attach to Power Apps elements periodically
+  attachToPowerAppsElements();
+  setInterval(attachToPowerAppsElements, 2000);
   
   // Reload templates when storage changes - listen for templates specifically
   chrome.storage.onChanged.addListener((changes, areaName) => {

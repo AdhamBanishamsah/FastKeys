@@ -1,6 +1,8 @@
 import { storage } from '../lib/storage.js';
 import { generateUUID } from '../lib/uuid.js';
 import { htmlToText } from '../lib/templating.js';
+import { formatDate, formatDateWithTemplate } from '../lib/dateFormat.js';
+import { t } from '../lib/translations.js';
 
 let templates = [];
 let tags = [];
@@ -8,6 +10,7 @@ let currentTemplateId = null;
 let selectedTemplateIds = new Set();
 let selectedTagFilter = 'all';
 let profile = {};
+let customDateFormats = {};
 
 // Render custom variables in dropdown (defined early so it's accessible)
 const renderVariableDropdown = () => {
@@ -28,15 +31,23 @@ const renderVariableDropdown = () => {
   }).join('');
 };
 
+let language = 'en';
+
+const PRESET_DATE_FORMATS = ['long', 'short', 'iso', 'weekday_long', 'long_time', 'short_time', 'time_only', 'month_year', 'day_month', 'hijri_long', 'hijri_short', 'hijri_full', 'hijri_weekday'];
+
 const loadData = async () => {
   templates = await storage.getTemplates();
   tags = await storage.getTags();
   const settings = await storage.getSettings();
   profile = settings.profile || {};
+  customDateFormats = settings.customDateFormats || {};
+  language = settings.language || 'en';
   loadProfile();
+  loadLanguage();
   renderTemplates();
   renderTags();
   renderTagFilter();
+  renderCustomDateFormats();
 };
 
 const saveTemplates = async () => {
@@ -55,6 +66,138 @@ const loadProfile = () => {
   document.getElementById('profile-email').value = profile.email || '';
   renderCustomVariables();
   renderVariableDropdown();
+};
+
+const loadLanguage = () => {
+  const langSelect = document.getElementById('language-select');
+  if (langSelect) {
+    langSelect.value = language;
+  }
+  updateDateDropdownExamples();
+  renderCustomDateFormats();
+  updateUITranslations();
+};
+
+const updateUITranslations = () => {
+  // Update all UI text based on selected language
+  const elements = {
+    'templates-tab': t('templates', language),
+    'automations-tab': t('automations', language),
+    'select-all-label': t('selectAll', language),
+    'create-btn-text': t('create', language),
+    'create-new-text': t('newTemplate', language),
+    'import-templates-text': t('importTemplates', language),
+    'share-btn': t('share', language),
+    'export-all-btn': t('exportAll', language),
+    'tags-btn': t('tags', language),
+    'delete-btn': t('delete', language),
+    'filter-tags-btn': t('filterByTag', language),
+    'search-input': t('searchTemplates', language),
+    'trigger-label': t('trigger', language),
+    'trigger-input': t('triggerPlaceholder', language),
+    'save-btn': t('save', language),
+    'discard-btn': t('discard', language),
+    'tags-label': t('tagsLabel', language),
+    'add-tag-btn': t('addTag', language),
+    'insert-variable-btn': t('variables', language),
+    'insert-date-btn': t('date', language),
+    'view-html-btn': t('html', language),
+    'editor-content': t('startTyping', language),
+    'about-title': t('about', language),
+    'language-title': t('languageLocalization', language),
+    'language-description': t('languageDescription', language),
+    'language-label': t('language', language),
+    'profile-title': t('profileVariables', language),
+    'profile-description': t('profileDescription', language),
+    'first-name-label': t('firstName', language),
+    'last-name-label': t('lastName', language),
+    'email-label': t('email', language),
+    'first-name-placeholder': t('enterFirstName', language),
+    'last-name-placeholder': t('enterLastName', language),
+    'email-placeholder': t('enterEmail', language),
+    'add-variable-btn': t('addCustomVariable', language),
+    'save-profile-btn': t('saveProfile', language),
+    'tag-modal-title': t('createTag', language),
+    'tag-name-placeholder': t('tagName', language),
+    'cancel-tag-btn': t('cancel', language),
+    'save-tag-btn': t('save', language),
+    'html-modal-title': t('editHTML', language),
+    'cancel-html-btn': t('cancel', language),
+    'save-html-btn': t('save', language),
+    'all-templates-option': t('allTemplates', language),
+    'gregorian-title': t('gregorian', language),
+    'hijri-title': t('hijriIslamic', language),
+    'profile-section-title': t('profile', language),
+    'custom-section-title': t('custom', language),
+    'custom-date-formats-title': t('customDateFormatsTitle', language),
+    'custom-date-formats-description': t('customDateFormatsDescription', language),
+    'add-custom-date-format-btn': t('addCustomDateFormatBtn', language),
+    'date-format-modal-title': t('dateFormatModalTitle', language),
+    'date-format-name-label': t('dateFormatNameLabel', language),
+    'date-format-name-placeholder': t('dateFormatNamePlaceholder', language),
+    'date-format-template-label': t('dateFormatTemplateLabel', language),
+    'date-format-template-placeholder': t('dateFormatTemplatePlaceholder', language)
+  };
+  
+  // Update text content
+  Object.keys(elements).forEach(key => {
+    const element = document.querySelector(`[data-i18n="${key}"]`);
+    if (element) {
+      if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+        // Only update placeholder, never set value for input fields
+        if (key.includes('placeholder') || key === 'search-input' || key === 'trigger-input' || key === 'editor-content') {
+          element.placeholder = elements[key];
+        }
+        // Don't set value - let user input remain
+      } else if (element.tagName === 'BUTTON') {
+        // Handle buttons with spans (like Create button)
+        const span = element.querySelector('span[data-i18n]');
+        if (span) {
+          span.textContent = elements[key];
+        } else {
+          // Check if button has arrow span, preserve it
+          const arrow = element.querySelector('.arrow');
+          if (arrow) {
+            element.innerHTML = elements[key] + ' ' + arrow.outerHTML;
+          } else {
+            element.textContent = elements[key];
+          }
+        }
+      } else {
+        element.textContent = elements[key];
+      }
+    }
+  });
+  
+  // Update variable dropdown labels
+  const profileSection = document.querySelector('#variable-dropdown .dropdown-section-title');
+  if (profileSection) {
+    profileSection.textContent = t('profile', language);
+  }
+  
+  // Update custom variables section title
+  const customSection = document.querySelector('#custom-variables-dropdown');
+  if (customSection && customSection.children.length > 0) {
+    const title = customSection.querySelector('.dropdown-section-title');
+    if (title) {
+      title.textContent = t('custom', language);
+    }
+  }
+  
+  // Update about text (multiline)
+  const aboutText = document.querySelector('[data-i18n="about-text"]');
+  if (aboutText) {
+    aboutText.innerHTML = t('aboutText', language).replace(/\n/g, '<br>');
+  }
+  
+  // Update RTL for Arabic
+  if (language === 'ar') {
+    document.documentElement.setAttribute('dir', 'rtl');
+    document.documentElement.setAttribute('lang', 'ar');
+  } else {
+    document.documentElement.setAttribute('dir', 'ltr');
+    document.documentElement.setAttribute('lang', language);
+  }
 };
 
 const renderCustomVariables = () => {
@@ -78,7 +221,7 @@ const renderCustomVariables = () => {
   container.querySelectorAll('.remove-variable-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const varName = btn.dataset.var;
-      if (confirm(`Remove variable "${varName}"?`)) {
+      if (confirm(t('confirmRemove', language, { name: varName }))) {
         delete profile.custom[varName];
         renderCustomVariables();
         renderVariableDropdown();
@@ -152,11 +295,163 @@ const saveProfile = async () => {
     }
   });
   
+  // Save language
+  const langSelect = document.getElementById('language-select');
+  if (langSelect) {
+    language = langSelect.value;
+  }
+  
   const settings = await storage.getSettings();
   settings.profile = profile;
+  settings.language = language;
   await storage.saveSettings(settings);
-  renderVariableDropdown(); // Update dropdown after saving
-  alert('Profile saved successfully!');
+  renderVariableDropdown();
+  updateDateDropdownExamples();
+  renderCustomDateFormats();
+  alert(t('profileSaved', language));
+};
+
+const escapeHtml = (s) => String(s)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;');
+
+const renderCustomDateFormats = () => {
+  const container = document.getElementById('custom-date-formats-container');
+  const dropdownContainer = document.getElementById('custom-date-formats-dropdown');
+  const section = document.getElementById('custom-date-formats-section');
+  if (!container || !dropdownContainer) return;
+
+  const keys = Object.keys(customDateFormats).sort();
+  container.innerHTML = keys.map((key) => {
+    const template = customDateFormats[key];
+    const preview = formatDate(key, language, customDateFormats);
+    const safeTemplate = escapeHtml(template);
+    const safePreview = escapeHtml(preview);
+    return `<div class="form-group custom-date-format-group" data-format-key="${key}">
+  <div class="custom-date-format-row">
+    <span class="custom-date-format-name">${key}</span>
+    <code class="custom-date-format-template">${safeTemplate}</code>
+    <span class="custom-date-format-preview">${safePreview}</span>
+    <button type="button" class="btn btn-small edit-date-format-btn" data-format-key="${key}">Edit</button>
+    <button type="button" class="btn btn-danger btn-small remove-date-format-btn" data-format-key="${key}" aria-label="${escapeHtml(t('removeDateFormat', language))}">Remove</button>
+  </div>
+</div>`;
+  }).join('');
+
+  container.querySelectorAll('.remove-date-format-btn').forEach((btn) => {
+    btn.addEventListener('click', () => handleRemoveDateFormat(btn.dataset.formatKey));
+  });
+  container.querySelectorAll('.edit-date-format-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openDateFormatModal(btn.dataset.formatKey));
+  });
+
+  dropdownContainer.innerHTML = keys.map((key) => {
+    const preview = formatDate(key, language, customDateFormats);
+    return `<a href="#" data-format="${key}">${escapeHtml(preview)}</a>`;
+  }).join('');
+
+  if (section) {
+    const visible = keys.length > 0;
+    section.style.display = visible ? 'block' : 'none';
+    const prev = section.previousElementSibling;
+    if (prev?.classList?.contains('dropdown-divider')) {
+      prev.style.display = visible ? 'block' : 'none';
+    }
+  }
+};
+
+const handleRemoveDateFormat = async (key) => {
+  if (!confirm(t('confirmRemoveDateFormat', language, { name: key }))) return;
+  delete customDateFormats[key];
+  const settings = await storage.getSettings();
+  settings.customDateFormats = customDateFormats;
+  await storage.saveSettings(settings);
+  renderCustomDateFormats();
+  updateDateDropdownExamples();
+};
+
+const openDateFormatModal = (editingKey = null) => {
+  const modal = document.getElementById('date-format-modal');
+  const titleEl = document.getElementById('date-format-modal-title');
+  const nameInput = document.getElementById('date-format-name-input');
+  const templateInput = document.getElementById('date-format-template-input');
+  if (!modal || !titleEl || !nameInput || !templateInput) return;
+
+  if (editingKey) {
+    titleEl.setAttribute('data-i18n', 'date-format-modal-edit-title');
+    titleEl.textContent = t('dateFormatModalEdit', language);
+    nameInput.value = editingKey;
+    nameInput.readOnly = true;
+    templateInput.value = customDateFormats[editingKey] || '';
+    nameInput.dataset.editingKey = editingKey;
+  } else {
+    titleEl.setAttribute('data-i18n', 'date-format-modal-title');
+    titleEl.textContent = t('dateFormatModalTitle', language);
+    nameInput.value = '';
+    nameInput.readOnly = false;
+    nameInput.removeAttribute('data-editing-key');
+    templateInput.value = '';
+  }
+  modal.classList.add('show');
+  (editingKey ? templateInput : nameInput).focus();
+};
+
+const closeDateFormatModal = () => {
+  document.getElementById('date-format-modal')?.classList.remove('show');
+};
+
+const handleSaveDateFormat = async () => {
+  const nameInput = document.getElementById('date-format-name-input');
+  const templateInput = document.getElementById('date-format-template-input');
+  if (!nameInput || !templateInput) return;
+
+  const rawName = nameInput.value.trim();
+  const template = templateInput.value.trim();
+  const editingKey = nameInput.dataset.editingKey || null;
+
+  if (!template) {
+    alert(t('dateFormatTemplateRequired', language));
+    return;
+  }
+
+  const key = editingKey || rawName;
+  if (!key) {
+    alert(t('dateFormatNameRequired', language));
+    return;
+  }
+
+  if (!editingKey) {
+    const validName = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    if (!validName.test(key)) {
+      alert(t('dateFormatNameInvalid', language));
+      return;
+    }
+    if (PRESET_DATE_FORMATS.includes(key)) {
+      alert(t('dateFormatNameReserved', language));
+      return;
+    }
+    if (customDateFormats[key]) {
+      alert(t('dateFormatNameExists', language));
+      return;
+    }
+  }
+
+  try {
+    formatDateWithTemplate(template, language);
+  } catch (e) {
+    alert(t('dateFormatTemplateInvalid', language));
+    return;
+  }
+
+  customDateFormats[key] = template;
+  const settings = await storage.getSettings();
+  settings.customDateFormats = customDateFormats;
+  await storage.saveSettings(settings);
+  closeDateFormatModal();
+  renderCustomDateFormats();
+  updateDateDropdownExamples();
 };
 
 const renderTagFilter = () => {
@@ -198,13 +493,14 @@ const renderTagFilter = () => {
 
 const renderTemplates = () => {
   const list = document.getElementById('templates-list');
-  const searchQuery = document.getElementById('search-input').value.toLowerCase();
+  const searchQuery = (document.getElementById('search-input').value || '').toLowerCase();
   
-  let filtered = templates.filter(t => 
-    t.trigger.toLowerCase().includes(searchQuery) ||
-    (t.title && t.title.toLowerCase().includes(searchQuery)) ||
-    t.bodyText.toLowerCase().includes(searchQuery)
-  );
+  let filtered = templates.filter(t => {
+    const trigger = (t.trigger || '').toLowerCase();
+    const title = (t.title || '').toLowerCase();
+    const bodyText = (t.bodyText || '').toLowerCase();
+    return trigger.includes(searchQuery) || title.includes(searchQuery) || bodyText.includes(searchQuery);
+  });
   
   // Apply tag filter
   if (selectedTagFilter && selectedTagFilter !== 'all') {
@@ -213,16 +509,22 @@ const renderTemplates = () => {
     );
   }
 
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state">${t('noTemplatesFound', language)}</div>`;
+    return;
+  }
+  
   list.innerHTML = filtered.map(template => {
     const isSelected = selectedTemplateIds.has(template.id);
-    const preview = template.bodyText.substring(0, 100) + (template.bodyText.length > 100 ? '...' : '');
+    const safeBodyText = template.bodyText || '';
+    const preview = safeBodyText.substring(0, 100) + (safeBodyText.length > 100 ? '...' : '');
     const templateTags = template.tags || [];
     
     return `
       <div class="template-card ${isSelected ? 'selected' : ''}" data-id="${template.id}">
         <input type="checkbox" class="template-checkbox" ${isSelected ? 'checked' : ''} data-id="${template.id}">
         <div style="flex: 1;">
-          <div class="template-trigger">${template.trigger}</div>
+          <div class="template-trigger">${template.trigger || ''}</div>
           <div class="template-preview">${preview}</div>
           ${templateTags && templateTags.length > 0 ? `
           <div class="template-tags">
@@ -281,7 +583,7 @@ const renderTags = () => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const name = btn.dataset.name;
-      if (confirm(`Delete tag "${name}"?`)) {
+      if (confirm(t('confirmRemove', language, { name }))) {
         tags = tags.filter(t => t.name !== name);
         // Remove tag from templates
         templates.forEach(t => {
@@ -301,6 +603,25 @@ const renderTags = () => {
   });
 };
 
+const showEditor = () => {
+  const editorPanel = document.querySelector('.editor-panel');
+  if (editorPanel) {
+    editorPanel.classList.add('active');
+  }
+};
+
+const hideEditor = () => {
+  const editorPanel = document.querySelector('.editor-panel');
+  if (editorPanel) {
+    editorPanel.classList.remove('active');
+  }
+  currentTemplateId = null;
+  // Clear editor
+  document.getElementById('trigger-input').value = '';
+  document.getElementById('editor-content').innerHTML = '';
+  renderEditorTags([]);
+};
+
 const loadTemplate = (id) => {
   const template = templates.find(t => t.id === id);
   if (!template) return;
@@ -311,7 +632,11 @@ const loadTemplate = (id) => {
   // Tags are optional - use empty array if not present
   renderEditorTags(template.tags || []);
   renderTagSelector(); // Update tag selector
-  document.getElementById('editor-content').focus();
+  showEditor();
+  // Focus editor after a short delay to ensure it's visible
+  setTimeout(() => {
+    document.getElementById('editor-content').focus();
+  }, 100);
 };
 
 const createNewTemplate = () => {
@@ -320,7 +645,11 @@ const createNewTemplate = () => {
   document.getElementById('editor-content').innerHTML = '';
   renderEditorTags([]);
   renderTagSelector(); // Update tag selector
-  document.getElementById('editor-content').focus();
+  showEditor();
+  // Focus editor after a short delay to ensure it's visible
+  setTimeout(() => {
+    document.getElementById('editor-content').focus();
+  }, 100);
 };
 
 const renderEditorTags = (templateTags) => {
@@ -446,35 +775,35 @@ const saveTemplate = async () => {
   }
 
   await saveTemplates();
-  loadTemplate(currentTemplateId);
+  // Hide editor and show templates list
+  hideEditor();
+  renderTemplates();
 };
 
 const discardChanges = () => {
-  if (currentTemplateId) {
-    loadTemplate(currentTemplateId);
-  } else {
-    createNewTemplate();
-  }
+  // Hide editor and show templates list
+  hideEditor();
+  renderTemplates();
 };
 
 const deleteSelectedTemplates = async () => {
   if (selectedTemplateIds.size === 0) {
-    alert('No templates selected');
+    alert(t('noTemplatesSelected', language));
     return;
   }
 
-  if (confirm(`Delete ${selectedTemplateIds.size} template(s)?`)) {
+  if (confirm(t('deleteTemplates', language, { count: selectedTemplateIds.size }))) {
     templates = templates.filter(t => !selectedTemplateIds.has(t.id));
     selectedTemplateIds.clear();
-    currentTemplateId = null;
     await saveTemplates();
-    createNewTemplate();
+    hideEditor();
+    renderTemplates();
   }
 };
 
 const exportTemplates = () => {
   if (selectedTemplateIds.size === 0) {
-    alert('Please select templates to export');
+    alert(t('noTemplatesToShare', language));
     return;
   }
 
@@ -591,42 +920,119 @@ const updateSelectAll = () => {
 
 const insertVariable = (variable) => {
   const editor = document.getElementById('editor-content');
-  const selection = window.getSelection();
   
+  // Ensure editor is focused
+  editor.focus();
+  
+  // Get selection within the editor
+  const selection = window.getSelection();
+  let range;
+  
+  // Check if selection is within the editor
   if (selection.rangeCount > 0) {
-    const range = selection.getRangeAt(0);
-    range.deleteContents();
-    const chip = document.createElement('span');
-    chip.className = 'variable-chip';
-    chip.contentEditable = 'false';
-    chip.textContent = `{{${variable}}}`;
-    range.insertNode(chip);
-    range.setStartAfter(chip);
-    range.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    editor.focus();
+    range = selection.getRangeAt(0);
+    // Verify the selection is actually in the editor
+    if (!editor.contains(range.commonAncestorContainer)) {
+      // Selection is not in editor, create new range at end of editor
+      range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false); // Collapse to end
+    }
+  } else {
+    // No selection, create range at end of editor
+    range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false); // Collapse to end
   }
+  
+  // Insert the variable
+  range.deleteContents();
+  const chip = document.createElement('span');
+  chip.className = 'variable-chip';
+  chip.contentEditable = 'false';
+  chip.textContent = `{{${variable}}}`;
+  range.insertNode(chip);
+  
+  // Move cursor after the inserted chip
+  range.setStartAfter(chip);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  
+  // Ensure editor stays focused
+  editor.focus();
+};
+
+const updateDateDropdownExamples = () => {
+  const dateDropdown = document.getElementById('date-dropdown');
+  if (!dateDropdown) return;
+  
+  const examples = {
+    'long': formatDate('long', language),
+    'short': formatDate('short', language),
+    'iso': formatDate('iso', language),
+    'weekday_long': formatDate('weekday_long', language),
+    'long_time': formatDate('long_time', language),
+    'short_time': formatDate('short_time', language),
+    'time_only': formatDate('time_only', language),
+    'month_year': formatDate('month_year', language),
+    'day_month': formatDate('day_month', language),
+    'hijri_long': formatDate('hijri_long', language),
+    'hijri_short': formatDate('hijri_short', language),
+    'hijri_full': formatDate('hijri_full', language),
+    'hijri_weekday': formatDate('hijri_weekday', language)
+  };
+  
+  dateDropdown.querySelectorAll('a[data-format]').forEach((link) => {
+    const format = link.dataset.format;
+    const text = examples[format] ?? (customDateFormats[format] ? formatDate(format, language, customDateFormats) : null);
+    if (text) link.textContent = text;
+  });
 };
 
 const insertDate = (format) => {
   const editor = document.getElementById('editor-content');
-  const selection = window.getSelection();
   
+  // Ensure editor is focused
+  editor.focus();
+  
+  // Get selection within the editor
+  const selection = window.getSelection();
+  let range;
+  
+  // Check if selection is within the editor
   if (selection.rangeCount > 0) {
-    const range = selection.getRangeAt(0);
-    range.deleteContents();
-    const chip = document.createElement('span');
-    chip.className = 'variable-chip';
-    chip.contentEditable = 'false';
-    chip.textContent = format === 'long' ? '{{date}}' : `{{date:${format}}}`;
-    range.insertNode(chip);
-    range.setStartAfter(chip);
-    range.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    editor.focus();
+    range = selection.getRangeAt(0);
+    // Verify the selection is actually in the editor
+    if (!editor.contains(range.commonAncestorContainer)) {
+      // Selection is not in editor, create new range at end of editor
+      range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false); // Collapse to end
+    }
+  } else {
+    // No selection, create range at end of editor
+    range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false); // Collapse to end
   }
+  
+  // Insert the date variable
+  range.deleteContents();
+  const chip = document.createElement('span');
+  chip.className = 'variable-chip';
+  chip.contentEditable = 'false';
+  chip.textContent = format === 'long' ? '{{date}}' : `{{date:${format}}}`;
+  range.insertNode(chip);
+  
+  // Move cursor after the inserted chip
+  range.setStartAfter(chip);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  
+  // Ensure editor stays focused
+  editor.focus();
 };
 
 const showHTMLModal = () => {
@@ -734,13 +1140,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Create dropdown
+  const createBtn = document.getElementById('create-btn');
+  const createDropdown = document.getElementById('create-dropdown');
+  if (createBtn && createDropdown) {
+    createBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      createDropdown.classList.toggle('show');
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#create-btn') && !e.target.closest('#create-dropdown')) {
+        createDropdown.classList.remove('show');
+      }
+    });
+  }
+
   document.getElementById('create-new').addEventListener('click', (e) => {
     e.preventDefault();
+    createDropdown?.classList.remove('show');
     createNewTemplate();
   });
 
   document.getElementById('import-templates').addEventListener('click', (e) => {
     e.preventDefault();
+    createDropdown?.classList.remove('show');
     importTemplates();
   });
 
@@ -831,8 +1254,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Save profile
   document.getElementById('save-profile-btn').addEventListener('click', saveProfile);
   
+  // Language selector
+  const langSelect = document.getElementById('language-select');
+  if (langSelect) {
+    langSelect.addEventListener('change', async () => {
+      language = langSelect.value;
+      const settings = await storage.getSettings();
+      settings.language = language;
+      await storage.saveSettings(settings);
+      updateDateDropdownExamples();
+      renderCustomDateFormats();
+      updateUITranslations();
+    });
+  }
+
   // Add custom variable
   document.getElementById('add-variable-btn').addEventListener('click', addCustomVariable);
+
+  // Custom date formats
+  document.getElementById('add-date-format-btn')?.addEventListener('click', () => openDateFormatModal());
+  document.getElementById('save-date-format-btn')?.addEventListener('click', handleSaveDateFormat);
+  document.getElementById('cancel-date-format-btn')?.addEventListener('click', closeDateFormatModal);
 
   // Editor toolbar
   document.querySelectorAll('[data-command]').forEach(btn => {
@@ -877,8 +1319,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     variableDropdown.addEventListener('click', (e) => {
       if (e.target.tagName === 'A' && e.target.dataset.variable) {
         e.preventDefault();
-        insertVariable(e.target.dataset.variable);
+        e.stopPropagation();
         variableDropdown.classList.remove('show');
+        // Small delay to ensure dropdown closes and editor can receive focus
+        setTimeout(() => {
+          insertVariable(e.target.dataset.variable);
+        }, 50);
       }
     });
   }
@@ -910,12 +1356,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     dateDropdown.addEventListener('mouseenter', showDateDropdown);
     dateDropdown.addEventListener('mouseleave', hideDateDropdown);
     
-    document.querySelectorAll('#date-dropdown a').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        insertDate(link.dataset.format);
-        dateDropdown.classList.remove('show');
-      });
+    dateDropdown.addEventListener('click', (e) => {
+      const link = e.target.closest('a[data-format]');
+      if (!link) return;
+      e.preventDefault();
+      e.stopPropagation();
+      dateDropdown.classList.remove('show');
+      setTimeout(() => insertDate(link.dataset.format), 50);
     });
   }
 
@@ -961,5 +1408,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize tag selector
   renderTagSelector();
   
-  createNewTemplate();
+  // Show templates list by default; editor opens on create/edit
+  hideEditor();
 });

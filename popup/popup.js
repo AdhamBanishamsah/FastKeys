@@ -1,13 +1,46 @@
 import { storage } from '../lib/storage.js';
+import { t } from '../lib/translations.js';
 
 let templates = [];
 let recentTemplates = [];
+let language = 'en';
 
 const loadTemplates = async () => {
   templates = await storage.getTemplates();
   const settings = await storage.getSettings();
   recentTemplates = settings.recentTemplates || [];
+  language = settings.language || 'en';
+  updateUITranslations();
   renderTemplates();
+};
+
+const updateUITranslations = () => {
+  const elements = {
+    'fastKeys': t('fastKeys', language),
+    'search-input': t('searchTemplates', language),
+    'recent': t('recent', language),
+    'allTemplatesPopup': t('allTemplatesPopup', language)
+  };
+  
+  Object.keys(elements).forEach(key => {
+    const element = document.querySelector(`[data-i18n="${key}"]`);
+    if (element) {
+      if (element.tagName === 'INPUT') {
+        element.placeholder = elements[key];
+      } else {
+        element.textContent = elements[key];
+      }
+    }
+  });
+  
+  // Update RTL for Arabic
+  if (language === 'ar') {
+    document.documentElement.setAttribute('dir', 'rtl');
+    document.documentElement.setAttribute('lang', 'ar');
+  } else {
+    document.documentElement.setAttribute('dir', 'ltr');
+    document.documentElement.setAttribute('lang', language);
+  }
 };
 
 const saveRecent = async (templateId) => {
@@ -73,10 +106,10 @@ const renderTemplates = () => {
   if (others.length > 0) {
     allList.innerHTML = others.map(t => createTemplateItem(t)).join('');
     document.getElementById('all-section').style.display = 'block';
-  } else {
-    allList.innerHTML = '<div class="empty-state">No templates found</div>';
-    document.getElementById('all-section').style.display = 'block';
-  }
+    } else {
+      allList.innerHTML = `<div class="empty-state">${t('noTemplatesFound', language)}</div>`;
+      document.getElementById('all-section').style.display = 'block';
+    }
 
   document.querySelectorAll('.template-item').forEach(item => {
     item.addEventListener('click', () => {

@@ -10,8 +10,8 @@
   <div class="container">
     <header class="header">
       <div class="tabs">
-        <button class="tab active" data-tab="templates">Templates</button>
-        <button class="tab" data-tab="automations">Automations</button>
+        <button class="tab active" data-tab="templates" data-i18n="templates-tab">Templates</button>
+        <button class="tab" data-tab="automations" data-i18n="automations-tab">Settings</button>
       </div>
     </header>
 
@@ -20,82 +20,124 @@
         <div class="toolbar-left">
           <label class="checkbox-wrapper">
             <input type="checkbox" id="select-all">
-            <span>Select All</span>
+            <span data-i18n="select-all-label">Select All</span>
           </label>
           <div class="dropdown-wrapper">
             <button class="btn btn-primary" id="create-btn">
-              Create <span class="arrow">▼</span>
+              <span data-i18n="create-btn-text">Create</span> <span class="arrow">▼</span>
             </button>
             <div class="dropdown-menu" id="create-dropdown">
-              <a href="#" id="create-new">New Template</a>
-              <a href="#" id="import-templates">Import Templates</a>
+              <a href="#" id="create-new" data-i18n="create-new-text">New Template</a>
+              <a href="#" id="import-templates" data-i18n="import-templates-text">Import Templates</a>
             </div>
           </div>
-          <button class="btn" id="share-btn">Share</button>
-          <button class="btn" id="export-all-btn">Export All</button>
-          <button class="btn" id="tags-btn">Tags</button>
-          <button class="btn btn-danger" id="delete-btn">Delete</button>
+          <button class="btn" id="share-btn" data-i18n="share-btn">Share</button>
+          <button class="btn" id="export-all-btn" data-i18n="export-all-btn">Export All</button>
+          <button class="btn" id="tags-btn" data-i18n="tags-btn">Tags</button>
+          <button class="btn btn-danger" id="delete-btn" data-i18n="delete-btn">Delete</button>
         </div>
         <div class="toolbar-right">
           <div class="dropdown-wrapper">
             <button class="btn" id="filter-tags-btn">
-              Filter by Tag <span class="arrow">▼</span>
+              <span data-i18n="filter-tags-btn">Filter by Tag</span> <span class="arrow">▼</span>
             </button>
             <div class="dropdown-menu" id="filter-tags-dropdown">
-              <a href="#" data-tag="all">All Templates</a>
+              <a href="#" data-tag="all" data-i18n="all-templates-option">All Templates</a>
               <div class="dropdown-divider"></div>
             </div>
           </div>
-          <input type="text" id="search-input" placeholder="Search templates..." class="search-input">
+          <input type="text" id="search-input" placeholder="Search templates..." class="search-input" data-i18n="search-input">
         </div>
       </div>
 
       <div class="editor-panel">
         <div class="editor-header">
-          <input type="text" id="trigger-input" placeholder="Trigger (e.g., _vpn)" class="trigger-input">
+          <div class="editor-header-main">
+            <div class="trigger-section">
+              <label for="trigger-input" class="editor-label" data-i18n="trigger-label">Trigger</label>
+              <input type="text" id="trigger-input" placeholder="e.g., _vpn" class="trigger-input" data-i18n="trigger-input">
+            </div>
+            <div class="editor-tags-section">
+              <label class="editor-label" data-i18n="tags-label">Tags</label>
+              <div class="tags-input-group">
+                <div id="editor-tags-container" class="editor-tags-container"></div>
+                <div class="dropdown-wrapper">
+                  <button class="btn btn-small" id="add-tag-btn" data-i18n="add-tag-btn">+ Add Tag</button>
+                  <div class="dropdown-menu" id="editor-tag-dropdown">
+                    <div class="tag-select-list" id="tag-select-list"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="editor-actions">
-            <button class="btn btn-success" id="save-btn">Save</button>
-            <button class="btn" id="discard-btn">Discard</button>
+            <button class="btn" id="discard-btn" data-i18n="discard-btn">Discard</button>
+            <button class="btn btn-success" id="save-btn" data-i18n="save-btn">Save</button>
           </div>
         </div>
-        <div class="editor-tags-section">
-          <label>Tags:</label>
-          <div id="editor-tags-container" class="editor-tags-container"></div>
-          <div class="dropdown-wrapper">
-            <button class="btn btn-small" id="add-tag-btn">+ Add Tag ▼</button>
-            <div class="dropdown-menu" id="editor-tag-dropdown">
-              <div class="tag-select-list" id="tag-select-list"></div>
-            </div>
-          </div>
-        </div>
+        
         <div class="editor-toolbar">
-          <button class="toolbar-btn" data-command="bold" title="Bold">B</button>
-          <button class="toolbar-btn" data-command="italic" title="Italic">I</button>
-          <button class="toolbar-btn" data-command="underline" title="Underline">U</button>
-          <button class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List">•</button>
-          <button class="toolbar-btn" data-command="createLink" title="Link">🔗</button>
-          <div class="dropdown-wrapper">
-            <button class="toolbar-btn" id="insert-variable-btn">Insert Variable ▼</button>
-            <div class="dropdown-menu" id="variable-dropdown">
-              <a href="#" data-variable="first_name">First Name</a>
-              <a href="#" data-variable="last_name">Last Name</a>
-              <a href="#" data-variable="email">Email</a>
-              <div class="dropdown-divider"></div>
-              <div id="custom-variables-dropdown"></div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" data-command="bold" title="Bold"><strong>B</strong></button>
+            <button class="toolbar-btn" data-command="italic" title="Italic"><em>I</em></button>
+            <button class="toolbar-btn" data-command="underline" title="Underline"><u>U</u></button>
+          </div>
+          <div class="toolbar-divider"></div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List">•</button>
+            <button class="toolbar-btn" data-command="createLink" title="Link">🔗</button>
+          </div>
+          <div class="toolbar-divider"></div>
+          <div class="toolbar-group">
+            <div class="dropdown-wrapper">
+              <button class="toolbar-btn" id="insert-variable-btn" data-i18n="insert-variable-btn">Variables</button>
+              <div class="dropdown-menu" id="variable-dropdown">
+                <div class="dropdown-section">
+                  <div class="dropdown-section-title" data-i18n="profile-section-title">Profile</div>
+                  <a href="#" data-variable="first_name" data-i18n="first-name-label">First Name</a>
+                  <a href="#" data-variable="last_name" data-i18n="last-name-label">Last Name</a>
+                  <a href="#" data-variable="email" data-i18n="email-label">Email</a>
+                </div>
+                <div id="custom-variables-dropdown"></div>
+              </div>
+            </div>
+            <div class="dropdown-wrapper">
+              <button class="toolbar-btn" id="insert-date-btn" data-i18n="insert-date-btn">Date</button>
+              <div class="dropdown-menu date-dropdown-menu" id="date-dropdown">
+                <div class="dropdown-section">
+                  <div class="dropdown-section-title" data-i18n="gregorian-title">Gregorian</div>
+                  <a href="#" data-format="long">January 22nd, 2026</a>
+                  <a href="#" data-format="short">01/22/2026</a>
+                  <a href="#" data-format="iso">2026-01-22</a>
+                  <a href="#" data-format="weekday_long">Thursday January 22nd, 2026</a>
+                  <a href="#" data-format="long_time">January 22nd, 2026, 11:09 am</a>
+                  <a href="#" data-format="short_time">01/22/2026 11:09 AM</a>
+                  <a href="#" data-format="time_only">11:09 AM</a>
+                  <a href="#" data-format="month_year">January 2026</a>
+                  <a href="#" data-format="day_month">22 January</a>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-section">
+                  <div class="dropdown-section-title" data-i18n="hijri-title">Hijri (Islamic)</div>
+                  <a href="#" data-format="hijri_long">22 Rajab 1447</a>
+                  <a href="#" data-format="hijri_short">22/07/1447</a>
+                  <a href="#" data-format="hijri_full">22 Rajab 1447 AH</a>
+                  <a href="#" data-format="hijri_weekday">Thursday 22 Rajab 1447</a>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-section" id="custom-date-formats-section">
+                  <div class="dropdown-section-title" data-i18n="custom-date-formats-title">Custom</div>
+                  <div id="custom-date-formats-dropdown"></div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="dropdown-wrapper">
-            <button class="toolbar-btn" id="insert-date-btn">Insert Date ▼</button>
-            <div class="dropdown-menu" id="date-dropdown">
-              <a href="#" data-format="long">January 22nd, 2026</a>
-              <a href="#" data-format="short">01/22/2026</a>
-              <a href="#" data-format="weekday_long">Thursday January 22nd, 2026</a>
-              <a href="#" data-format="long_time">January 22nd, 2026, 11:09 am</a>
-            </div>
+          <div class="toolbar-divider"></div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" id="view-html-btn" data-i18n="view-html-btn">HTML</button>
           </div>
-          <button class="toolbar-btn" id="view-html-btn">View HTML</button>
         </div>
-        <div class="editor-content" id="editor-content" contenteditable="true"></div>
+        <div class="editor-content" id="editor-content" contenteditable="true" placeholder="Start typing your template..." data-i18n="editor-content"></div>
       </div>
 
       <div class="templates-list" id="templates-list"></div>
@@ -106,40 +148,73 @@
         <h2>Settings</h2>
         
         <div class="settings-section">
-          <h3>About FastKeys</h3>
-          <p class="settings-description">
+          <h3 data-i18n="about-title">About FastKeys</h3>
+          <p class="settings-description" data-i18n="about-text">
             FastKeys v1.0.0<br>
             Text expander and autofill extension with template management.
           </p>
         </div>
         
         <div class="settings-section">
-          <h3>Profile Variables</h3>
-          <p class="settings-description">Edit your profile information that will be used to fill template variables. You can add custom variables as needed.</p>
+          <h3 data-i18n="language-title">Language & Localization</h3>
+          <p class="settings-description" data-i18n="language-description">Select your preferred language for date formatting and interface.</p>
           
           <div class="settings-form">
             <div class="form-group">
-              <label for="profile-first-name">First Name</label>
-              <input type="text" id="profile-first-name" placeholder="Enter your first name">
+              <label for="language-select" data-i18n="language-label">Language</label>
+              <select id="language-select" class="form-select">
+                <option value="en">English</option>
+                <option value="no">Norwegian (Norsk)</option>
+                <option value="es">Spanish (Español)</option>
+                <option value="fr">French (Français)</option>
+                <option value="de">German (Deutsch)</option>
+                <option value="it">Italian (Italiano)</option>
+                <option value="pt">Portuguese (Português)</option>
+                <option value="nl">Dutch (Nederlands)</option>
+                <option value="sv">Swedish (Svenska)</option>
+                <option value="da">Danish (Dansk)</option>
+                <option value="ar">Arabic (العربية)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="settings-section">
+          <h3 data-i18n="profile-title">Profile Variables</h3>
+          <p class="settings-description" data-i18n="profile-description">Edit your profile information that will be used to fill template variables. You can add custom variables as needed.</p>
+          
+          <div class="settings-form">
+            <div class="form-group">
+              <label for="profile-first-name" data-i18n="first-name-label">First Name</label>
+              <input type="text" id="profile-first-name" placeholder="Enter your first name" data-i18n="first-name-placeholder">
             </div>
             
             <div class="form-group">
-              <label for="profile-last-name">Last Name</label>
-              <input type="text" id="profile-last-name" placeholder="Enter your last name">
+              <label for="profile-last-name" data-i18n="last-name-label">Last Name</label>
+              <input type="text" id="profile-last-name" placeholder="Enter your last name" data-i18n="last-name-placeholder">
             </div>
             
             <div class="form-group">
-              <label for="profile-email">Email</label>
-              <input type="email" id="profile-email" placeholder="Enter your email">
+              <label for="profile-email" data-i18n="email-label">Email</label>
+              <input type="email" id="profile-email" placeholder="Enter your email" data-i18n="email-placeholder">
             </div>
             
             <div id="custom-variables-container"></div>
             
             <div class="form-group">
-              <button class="btn" id="add-variable-btn">+ Add Custom Variable</button>
+              <button class="btn" id="add-variable-btn" data-i18n="add-variable-btn">+ Add Custom Variable</button>
             </div>
             
-            <button class="btn btn-success" id="save-profile-btn">Save Profile</button>
+            <button class="btn btn-success" id="save-profile-btn" data-i18n="save-profile-btn">Save Profile</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 data-i18n="custom-date-formats-title">Custom Date Formats</h3>
+          <p class="settings-description" data-i18n="custom-date-formats-description">Create your own date combinations using tokens (e.g. %Y-%m-%d %H:%M). Use in templates via Date → your format.</p>
+          <div id="custom-date-formats-container"></div>
+          <div class="form-group" style="margin-top: 12px;">
+            <button class="btn" id="add-date-format-btn" data-i18n="add-custom-date-format-btn">+ Add Custom Date Format</button>
           </div>
         </div>
       </div>
@@ -150,18 +225,18 @@
   <div class="tags-dropdown" id="tags-dropdown">
     <div class="tags-list" id="tags-list"></div>
     <div class="tags-footer">
-      <button class="btn btn-primary" id="create-tag-btn">Create New</button>
+      <button class="btn btn-primary" id="create-tag-btn" data-i18n="create-tag-btn">Create New</button>
     </div>
   </div>
 
   <!-- HTML View Modal -->
   <div class="modal" id="html-modal">
     <div class="modal-content">
-      <h3>Edit HTML</h3>
+      <h3 data-i18n="html-modal-title">Edit HTML</h3>
       <textarea id="html-editor" rows="15"></textarea>
       <div class="modal-actions">
-        <button class="btn btn-success" id="save-html-btn">Save</button>
-        <button class="btn" id="cancel-html-btn">Cancel</button>
+        <button class="btn btn-success" id="save-html-btn" data-i18n="save-html-btn">Save</button>
+        <button class="btn" id="cancel-html-btn" data-i18n="cancel-html-btn">Cancel</button>
       </div>
     </div>
   </div>
@@ -169,11 +244,30 @@
   <!-- Create Tag Modal -->
   <div class="modal" id="tag-modal">
     <div class="modal-content">
-      <h3 id="tag-modal-title">Create Tag</h3>
-      <input type="text" id="tag-name-input" placeholder="Tag name">
+      <h3 id="tag-modal-title" data-i18n="tag-modal-title">Create Tag</h3>
+      <input type="text" id="tag-name-input" placeholder="Tag name" data-i18n="tag-name-placeholder">
       <div class="modal-actions">
-        <button class="btn btn-success" id="save-tag-btn">Save</button>
-        <button class="btn" id="cancel-tag-btn">Cancel</button>
+        <button class="btn btn-success" id="save-tag-btn" data-i18n="save-tag-btn">Save</button>
+        <button class="btn" id="cancel-tag-btn" data-i18n="cancel-tag-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Date Format Modal -->
+  <div class="modal" id="date-format-modal">
+    <div class="modal-content">
+      <h3 id="date-format-modal-title" data-i18n="date-format-modal-title">Add Custom Date Format</h3>
+      <div class="form-group">
+        <label for="date-format-name-input" data-i18n="date-format-name-label">Name</label>
+        <input type="text" id="date-format-name-input" placeholder="e.g. my_date" data-i18n="date-format-name-placeholder">
+      </div>
+      <div class="form-group">
+        <label for="date-format-template-input" data-i18n="date-format-template-label">Format (tokens: %Y %m %d %H %M %S %B %A %p)</label>
+        <input type="text" id="date-format-template-input" placeholder="%Y-%m-%d %H:%M" data-i18n="date-format-template-placeholder">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-success" id="save-date-format-btn" data-i18n="save-tag-btn">Save</button>
+        <button class="btn" id="cancel-date-format-btn" data-i18n="cancel-tag-btn">Cancel</button>
       </div>
     </div>
   </div>
