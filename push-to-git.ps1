@@ -12,7 +12,7 @@ if ($LASTEXITCODE -ne 0) {
 git add -A
 git status
 
-$message = "Add theme option, popup improvements, template/sync fixes, dark mode"
+$message = "v1.0.1: theme option, popup improvements, template/sync fixes, dark mode, Chrome store justifications"
 git commit -m $message
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Nothing to commit, or commit failed. Trying push anyway..." -ForegroundColor Yellow

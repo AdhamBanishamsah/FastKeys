@@ -1,0 +1,9 @@
+Host permissions justification (paste this in the Chrome Web Store when asked):
+
+The extension requires host permission for "<all_urls>" to provide its core functionality: text expansion on any webpage. Users type short triggers (e.g. _vpn) followed by Space, Tab, or Enter in text fields, and the extension expands them into full template text. This must work on any site the user visits (email, forms, editors, etc.). A content script is injected to detect keystrokes and insert the expanded text only when the user types a trigger. The extension does not collect, transmit, or analyze webpage content or browsing data. All template data is stored locally in the user's browser. This use of host permission is standard for text expansion extensions (e.g. Text Blaze, TextExpander).
+
+---
+
+Scripting permission justification (paste this in the Chrome Web Store when asked):
+
+The "scripting" permission is used only when the user inserts a template from the extension popup. If the content script is not yet loaded on the active tab (e.g. the page was opened before the extension was installed, or the tab was just opened), the extension programmatically injects the content script and overlay CSS into that tab so the template can be inserted. This runs only in response to the user's explicit action (clicking a template in the popup) and only targets the currently active tab. The extension does not run scripts on pages without user action. This ensures insert-from-popup works reliably without requiring the user to refresh the page.
