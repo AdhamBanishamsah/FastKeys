@@ -1,0 +1,268 @@
+{
+  "templates": [
+    {
+      "id": "example-email-signature",
+      "trigger": "_sig",
+      "title": "Email Signature",
+      "bodyHtml": "<p>Best regards,<br><strong>{{first_name}} {{last_name}}</strong><br>{{email}}</p>",
+      "bodyText": "Best regards,\n{{first_name}} {{last_name}}\n{{email}}",
+      "tags": ["email", "signature"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-meeting-notes",
+      "trigger": "_meeting",
+      "title": "Meeting Notes Template",
+      "bodyHtml": "<p><strong>Meeting Date:</strong> {{date:long}}<br><strong>Attendees:</strong> [List names]<br><strong>Agenda:</strong></p><ul><li>Item 1</li><li>Item 2</li></ul><p><strong>Action Items:</strong></p><ul><li>[] Task 1 - Owner: [Name]</li><li>[] Task 2 - Owner: [Name]</li></ul>",
+      "bodyText": "Meeting Date: {{date:long}}\nAttendees: [List names]\n\nAgenda:\n- Item 1\n- Item 2\n\nAction Items:\n- [] Task 1 - Owner: [Name]\n- [] Task 2 - Owner: [Name]",
+      "tags": ["meeting", "notes"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-support-response",
+      "trigger": "_thanks",
+      "title": "Thank You Support Response",
+      "bodyHtml": "<p>Hi {{first_name}},</p><p>Thank you for reaching out to us. We appreciate your patience and will get back to you as soon as possible.</p><p>Best regards,<br>{{first_name}} {{last_name}}<br>Support Team</p>",
+      "bodyText": "Hi {{first_name}},\n\nThank you for reaching out to us. We appreciate your patience and will get back to you as soon as possible.\n\nBest regards,\n{{first_name}} {{last_name}}\nSupport Team",
+      "tags": ["support", "email"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-follow-up",
+      "trigger": "_followup",
+      "title": "Follow-up Email",
+      "bodyHtml": "<p>Hi,</p><p>I wanted to follow up on our conversation from {{date:weekday_long}}. Could you please provide an update on [topic]?</p><p>Thank you,<br>{{first_name}}</p>",
+      "bodyText": "Hi,\n\nI wanted to follow up on our conversation from {{date:weekday_long}}. Could you please provide an update on [topic]?\n\nThank you,\n{{first_name}}",
+      "tags": ["email", "follow-up"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-code-comment",
+      "trigger": "_todo",
+      "title": "TODO Comment",
+      "bodyHtml": "<p>// TODO: {{date:iso}} - [Description]<br>// Author: {{first_name}} {{last_name}}</p>",
+      "bodyText": "// TODO: {{date:iso}} - [Description]\n// Author: {{first_name}} {{last_name}}",
+      "tags": ["code", "development"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-bug-report",
+      "trigger": "_bug",
+      "title": "Bug Report Template",
+      "bodyHtml": "<p><strong>Bug Report</strong></p><p><strong>Date:</strong> {{date:long_time}}<br><strong>Reporter:</strong> {{first_name}} {{last_name}} ({{email}})<br><strong>Description:</strong> [Describe the bug]<br><strong>Steps to Reproduce:</strong></p><ol><li>Step 1</li><li>Step 2</li><li>Step 3</li></ol><p><strong>Expected Behavior:</strong> [What should happen]<br><strong>Actual Behavior:</strong> [What actually happens]</p>",
+      "bodyText": "Bug Report\n\nDate: {{date:long_time}}\nReporter: {{first_name}} {{last_name}} ({{email}})\n\nDescription: [Describe the bug]\n\nSteps to Reproduce:\n1. Step 1\n2. Step 2\n3. Step 3\n\nExpected Behavior: [What should happen]\nActual Behavior: [What actually happens]",
+      "tags": ["development", "bug"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-out-of-office",
+      "trigger": "_ooo",
+      "title": "Out of Office Message",
+      "bodyHtml": "<p>Hi,</p><p>I am currently out of the office and will return on {{date:long}}. For urgent matters, please contact [contact person] at [email/phone].</p><p>Best regards,<br>{{first_name}} {{last_name}}</p>",
+      "bodyText": "Hi,\n\nI am currently out of the office and will return on {{date:long}}. For urgent matters, please contact [contact person] at [email/phone].\n\nBest regards,\n{{first_name}} {{last_name}}",
+      "tags": ["email", "automated"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-invoice-header",
+      "trigger": "_invoice",
+      "title": "Invoice Header",
+      "bodyHtml": "<p><strong>INVOICE</strong></p><p>Date: {{date:short}}<br>Invoice #: INV-{{date:iso}}-001<br>Bill To: [Company Name]<br>From: {{first_name}} {{last_name}}<br>{{email}}</p>",
+      "bodyText": "INVOICE\n\nDate: {{date:short}}\nInvoice #: INV-{{date:iso}}-001\nBill To: [Company Name]\nFrom: {{first_name}} {{last_name}}\n{{email}}",
+      "tags": ["business", "invoice"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-daily-standup",
+      "trigger": "_standup",
+      "title": "Daily Standup Notes",
+      "bodyHtml": "<p><strong>Daily Standup - {{date:weekday_long}}</strong></p><p><strong>Yesterday:</strong><br>- [What I did]</p><p><strong>Today:</strong><br>- [What I plan to do]</p><p><strong>Blockers:</strong><br>- [Any blockers]</p>",
+      "bodyText": "Daily Standup - {{date:weekday_long}}\n\nYesterday:\n- [What I did]\n\nToday:\n- [What I plan to do]\n\nBlockers:\n- [Any blockers]",
+      "tags": ["meeting", "standup"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-request-access",
+      "trigger": "_access",
+      "title": "Access Request",
+      "bodyHtml": "<p>Hi,</p><p>I would like to request access to [system/service].</p><p><strong>Details:</strong><br>Name: {{first_name}} {{last_name}}<br>Email: {{email}}<br>Department: [Department]<br>Reason: [Reason for access]</p><p>Thank you,<br>{{first_name}}</p>",
+      "bodyText": "Hi,\n\nI would like to request access to [system/service].\n\nDetails:\nName: {{first_name}} {{last_name}}\nEmail: {{email}}\nDepartment: [Department]\nReason: [Reason for access]\n\nThank you,\n{{first_name}}",
+      "tags": ["request", "access"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-git-commit",
+      "trigger": "_commit",
+      "title": "Git Commit Message",
+      "bodyHtml": "<p>feat: [Brief description]</p><p>- [Change 1]<br>- [Change 2]</p><p>Date: {{date:iso}} {{date:time_only}}</p>",
+      "bodyText": "feat: [Brief description]\n\n- [Change 1]\n- [Change 2]\n\nDate: {{date:iso}} {{date:time_only}}",
+      "tags": ["code", "git"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-appointment",
+      "trigger": "_appt",
+      "title": "Appointment Confirmation",
+      "bodyHtml": "<p>Hi {{first_name}},</p><p>This is a confirmation of your appointment scheduled for {{date:weekday_long}} at {{date:time_only}}.</p><p>Location: [Location]<br>Duration: [Duration]</p><p>Please let us know if you need to reschedule.</p><p>Best regards,<br>[Company Name]</p>",
+      "bodyText": "Hi {{first_name}},\n\nThis is a confirmation of your appointment scheduled for {{date:weekday_long}} at {{date:time_only}}.\n\nLocation: [Location]\nDuration: [Duration]\n\nPlease let us know if you need to reschedule.\n\nBest regards,\n[Company Name]",
+      "tags": ["appointment", "confirmation"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-project-status",
+      "trigger": "_status",
+      "title": "Project Status Update",
+      "bodyHtml": "<p><strong>Project Status Update - {{date:month_year}}</strong></p><p><strong>Project:</strong> [Project Name]<br><strong>Status:</strong> [On Track / At Risk / Blocked]<br><strong>Progress:</strong> [X]%</p><p><strong>Completed This Week:</strong></p><ul><li>[Task 1]</li><li>[Task 2]</li></ul><p><strong>Next Week:</strong></p><ul><li>[Task 1]</li><li>[Task 2]</li></ul><p>Reported by: {{first_name}} {{last_name}}</p>",
+      "bodyText": "Project Status Update - {{date:month_year}}\n\nProject: [Project Name]\nStatus: [On Track / At Risk / Blocked]\nProgress: [X]%\n\nCompleted This Week:\n- [Task 1]\n- [Task 2]\n\nNext Week:\n- [Task 1]\n- [Task 2]\n\nReported by: {{first_name}} {{last_name}}",
+      "tags": ["project", "status"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-password-reset",
+      "trigger": "_reset",
+      "title": "Password Reset Request",
+      "bodyHtml": "<p>Hi,</p><p>I need to reset my password for [system/service].</p><p><strong>Account Details:</strong><br>Username: [Username]<br>Email: {{email}}<br>Name: {{first_name}} {{last_name}}</p><p>Thank you for your assistance.</p><p>Best regards,<br>{{first_name}}</p>",
+      "bodyText": "Hi,\n\nI need to reset my password for [system/service].\n\nAccount Details:\nUsername: [Username]\nEmail: {{email}}\nName: {{first_name}} {{last_name}}\n\nThank you for your assistance.\n\nBest regards,\n{{first_name}}",
+      "tags": ["request", "password"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-time-log",
+      "trigger": "_time",
+      "title": "Time Log Entry",
+      "bodyHtml": "<p><strong>Time Log - {{date:long}}</strong></p><p><strong>Project:</strong> [Project Name]<br><strong>Hours:</strong> [X] hours<br><strong>Description:</strong> [What you worked on]</p><p>Logged by: {{first_name}} {{last_name}}<br>Date: {{date:iso}} {{date:time_only}}</p>",
+      "bodyText": "Time Log - {{date:long}}\n\nProject: [Project Name]\nHours: [X] hours\nDescription: [What you worked on]\n\nLogged by: {{first_name}} {{last_name}}\nDate: {{date:iso}} {{date:time_only}}",
+      "tags": ["time", "log"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    },
+    {
+      "id": "example-reminder",
+      "trigger": "_remind",
+      "title": "Reminder Note",
+      "bodyHtml": "<p><strong>REMINDER</strong></p><p>Date: {{date:long}}<br>Time: {{date:time_only}}</p><p>[Reminder text]</p><p>Set by: {{first_name}}</p>",
+      "bodyText": "REMINDER\n\nDate: {{date:long}}\nTime: {{date:time_only}}\n\n[Reminder text]\n\nSet by: {{first_name}}",
+      "tags": ["reminder", "note"],
+      "createdAt": 1706112000000,
+      "updatedAt": 1706112000000
+    }
+  ],
+  "tags": [
+    {
+      "name": "email",
+      "color": "#3B82F6"
+    },
+    {
+      "name": "signature",
+      "color": "#10B981"
+    },
+    {
+      "name": "meeting",
+      "color": "#8B5CF6"
+    },
+    {
+      "name": "notes",
+      "color": "#F59E0B"
+    },
+    {
+      "name": "support",
+      "color": "#EF4444"
+    },
+    {
+      "name": "follow-up",
+      "color": "#06B6D4"
+    },
+    {
+      "name": "code",
+      "color": "#6366F1"
+    },
+    {
+      "name": "development",
+      "color": "#8B5CF6"
+    },
+    {
+      "name": "bug",
+      "color": "#DC2626"
+    },
+    {
+      "name": "automated",
+      "color": "#64748B"
+    },
+    {
+      "name": "business",
+      "color": "#059669"
+    },
+    {
+      "name": "invoice",
+      "color": "#0D9488"
+    },
+    {
+      "name": "standup",
+      "color": "#7C3AED"
+    },
+    {
+      "name": "request",
+      "color": "#EA580C"
+    },
+    {
+      "name": "access",
+      "color": "#C2410C"
+    },
+    {
+      "name": "git",
+      "color": "#1F2937"
+    },
+    {
+      "name": "appointment",
+      "color": "#0891B2"
+    },
+    {
+      "name": "confirmation",
+      "color": "#0EA5E9"
+    },
+    {
+      "name": "project",
+      "color": "#7C2D12"
+    },
+    {
+      "name": "status",
+      "color": "#B45309"
+    },
+    {
+      "name": "password",
+      "color": "#BE123C"
+    },
+    {
+      "name": "time",
+      "color": "#4B5563"
+    },
+    {
+      "name": "log",
+      "color": "#6B7280"
+    },
+    {
+      "name": "reminder",
+      "color": "#F97316"
+    },
+    {
+      "name": "note",
+      "color": "#FBBF24"
+    }
+  ],
+  "exportDate": "2026-01-24T12:00:00.000Z",
+  "version": "1.0.0"
+}

@@ -20,8 +20,26 @@ const storage = {
     }
   },
   async getTemplates() {
-    const templates = await this.get('templates');
-    return templates || [];
+    try {
+      const [syncResult, localResult] = await Promise.all([
+        chrome.storage.sync.get('templates').catch(() => ({})),
+        chrome.storage.local.get('templates').catch(() => ({}))
+      ]);
+      const syncTemplates = syncResult.templates || [];
+      const localTemplates = localResult.templates || [];
+      if (syncTemplates.length === 0 && localTemplates.length > 0) return localTemplates;
+      if (localTemplates.length === 0) return syncTemplates;
+      const merged = new Map();
+      syncTemplates.forEach(t => merged.set(t.id, t));
+      localTemplates.forEach(t => {
+        if (!merged.has(t.id)) merged.set(t.id, t);
+      });
+      return Array.from(merged.values());
+    } catch (error) {
+      console.warn('Storage read failed, falling back to get:', error);
+      const templates = await this.get('templates');
+      return templates || [];
+    }
   },
   async getSettings() {
     const settings = await this.get('settings');
@@ -1080,9 +1098,10 @@ const handleKeyDown = async (e) => {
   }
 };
 
-// Listen for messages from popup
+// Listen for messages from popup (only main frame handles insert to avoid multiple responses)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'insertTemplate') {
+    if (window !== window.top) return false;
     // Handle async response properly
     (async () => {
       try {

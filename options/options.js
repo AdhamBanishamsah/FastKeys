@@ -32,6 +32,7 @@ const renderVariableDropdown = () => {
 };
 
 let language = 'en';
+let theme = 'system';
 
 const PRESET_DATE_FORMATS = ['long', 'short', 'iso', 'weekday_long', 'long_time', 'short_time', 'time_only', 'month_year', 'day_month', 'hijri_long', 'hijri_short', 'hijri_full', 'hijri_weekday'];
 
@@ -42,8 +43,10 @@ const loadData = async () => {
   profile = settings.profile || {};
   customDateFormats = settings.customDateFormats || {};
   language = settings.language || 'en';
+  theme = settings.theme || 'system';
   loadProfile();
   loadLanguage();
+  loadTheme();
   renderTemplates();
   renderTags();
   renderTagFilter();
@@ -78,6 +81,26 @@ const loadLanguage = () => {
   updateUITranslations();
 };
 
+const getEffectiveTheme = (themeChoice) => {
+  if (themeChoice === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return themeChoice;
+};
+
+const applyTheme = (themeChoice) => {
+  const effective = getEffectiveTheme(themeChoice);
+  document.documentElement.setAttribute('data-theme', effective);
+};
+
+const loadTheme = () => {
+  const themeSelect = document.getElementById('theme-select');
+  if (themeSelect) {
+    themeSelect.value = theme;
+  }
+  applyTheme(theme);
+};
+
 const updateUITranslations = () => {
   // Update all UI text based on selected language
   const elements = {
@@ -104,6 +127,12 @@ const updateUITranslations = () => {
     'view-html-btn': t('html', language),
     'editor-content': t('startTyping', language),
     'about-title': t('about', language),
+    'theme-title': t('themeTitle', language),
+    'theme-description': t('themeDescription', language),
+    'theme-label': t('themeLabel', language),
+    'theme-light': t('themeLight', language),
+    'theme-dark': t('themeDark', language),
+    'theme-system': t('themeSystem', language),
     'language-title': t('languageLocalization', language),
     'language-description': t('languageDescription', language),
     'language-label': t('language', language),
@@ -1254,6 +1283,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Save profile
   document.getElementById('save-profile-btn').addEventListener('click', saveProfile);
   
+  // Theme selector
+  const themeSelect = document.getElementById('theme-select');
+  if (themeSelect) {
+    themeSelect.addEventListener('change', async () => {
+      theme = themeSelect.value;
+      const settings = await storage.getSettings();
+      settings.theme = theme;
+      await storage.saveSettings(settings);
+      applyTheme(theme);
+    });
+  }
+
+  // Listen for system theme change when theme is "system"
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (theme === 'system') {
+      applyTheme('system');
+    }
+  });
+
   // Language selector
   const langSelect = document.getElementById('language-select');
   if (langSelect) {
