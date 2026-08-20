@@ -1,17 +1,51 @@
 .magical-autofill-panel {
+  --magical-bg-from: #ffffff;
+  --magical-bg-to: #f8fafc;
+  --magical-border: #e2e8f0;
+  --magical-heading: #0f172a;
+  --magical-label: #475569;
+  --magical-input-bg: #ffffff;
+  --magical-input-text: #0f172a;
+  --magical-placeholder: #94a3b8;
+  --magical-secondary-btn-bg: #f1f5f9;
+  --magical-secondary-btn-text: #475569;
+  --magical-secondary-btn-hover-bg: #e2e8f0;
+  --magical-secondary-btn-hover-text: #0f172a;
+  --magical-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+
   position: absolute;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--magical-bg-from) 0%, var(--magical-bg-to) 100%);
+  border: 2px solid var(--magical-border);
   border-radius: 12px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--magical-shadow);
   padding: 20px;
   z-index: 10000;
-  min-width: 300px;
-  max-width: 400px;
+  min-width: 320px;
+  max-width: 420px;
+  max-height: 85vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
   font-size: 14px;
   animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
+  box-sizing: border-box;
+}
+
+.magical-autofill-panel[data-theme="dark"] {
+  --magical-bg-from: #1e293b;
+  --magical-bg-to: #0f172a;
+  --magical-border: #475569;
+  --magical-heading: #f1f5f9;
+  --magical-label: #cbd5e1;
+  --magical-input-bg: #334155;
+  --magical-input-text: #f1f5f9;
+  --magical-placeholder: #94a3b8;
+  --magical-secondary-btn-bg: #334155;
+  --magical-secondary-btn-text: #cbd5e1;
+  --magical-secondary-btn-hover-bg: #475569;
+  --magical-secondary-btn-hover-text: #f1f5f9;
+  --magical-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes slideDown {
@@ -36,14 +70,22 @@
   border-radius: 12px 12px 0 0;
 }
 
+.magical-autofill-panel .magical-autofill-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .magical-autofill-panel h4 {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--magical-heading);
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .magical-autofill-panel h4::before {
@@ -60,7 +102,7 @@
   margin-bottom: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #475569;
+  color: var(--magical-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -68,36 +110,39 @@
 .magical-autofill-panel input {
   width: 100%;
   padding: 10px 14px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--magical-border);
   border-radius: 8px;
   margin-bottom: 0;
   font-size: 14px;
   box-sizing: border-box;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #ffffff;
+  background: var(--magical-input-bg);
+  color: var(--magical-input-text);
 }
 
 .magical-autofill-panel input:focus {
   outline: none;
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  background: #ffffff;
+  background: var(--magical-input-bg);
 }
 
 .magical-autofill-panel input::placeholder {
-  color: #94a3b8;
+  color: var(--magical-placeholder);
 }
 
 .magical-autofill-panel .button-group {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--magical-border);
+  flex-shrink: 0;
 }
 
 .magical-autofill-panel button {
   flex: 1;
+  min-width: 0;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: #ffffff;
   border: none;
@@ -122,14 +167,14 @@
 }
 
 .magical-autofill-panel button.secondary {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--magical-secondary-btn-bg);
+  color: var(--magical-secondary-btn-text);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .magical-autofill-panel button.secondary:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: var(--magical-secondary-btn-hover-bg);
+  color: var(--magical-secondary-btn-hover-text);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 

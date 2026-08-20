@@ -1,5 +1,37 @@
 // Inline storage utilities (content scripts can't use ES modules in MV3)
-// Version: 1.0.1 - Fixed async/await in showAutofillPanel
+// Version: 1.0.3 - Fixed async/await in showAutofillPanel
+
+// True once the extension is reloaded/updated while this content script instance is
+// still alive on an old page. After that, every chrome.* call throws
+// "Extension context invalidated" — detect it once and tear ourselves down instead
+// of retrying and logging an error on every keystroke.
+let extensionContextInvalidated = false;
+const isExtensionContextValid = () => {
+  if (extensionContextInvalidated) return false;
+  try {
+    if (!chrome.runtime || !chrome.runtime.id) {
+      extensionContextInvalidated = true;
+      return false;
+    }
+  } catch (e) {
+    extensionContextInvalidated = true;
+    return false;
+  }
+  return true;
+};
+
+const teardownOnInvalidatedContext = () => {
+  extensionContextInvalidated = true;
+  try {
+    document.removeEventListener('keydown', handleKeyDown, true);
+    window.removeEventListener('keydown', handleKeyDown, true);
+    observer.disconnect();
+  } catch (e) {
+    // Best-effort cleanup; nothing else to do.
+  }
+  console.warn('FastKeys: extension was reloaded/updated. Refresh this page to restore text expansion.');
+};
+
 const storage = {
   async get(key) {
     try {
@@ -303,6 +335,39 @@ const insertText = (element, text, isHTML = false) => {
   }
 };
 
+/**
+ * Find the best document/window to render floating UI (the autofill panel) into.
+ * If the current frame is nested inside same-origin ancestor frames (e.g. a small
+ * Kendo Editor iframe), walk up to the top-most accessible ancestor so the panel
+ * gets the full page viewport instead of being squeezed into a tiny iframe. Returns
+ * the accumulated offset needed to translate a rect from the current frame's
+ * coordinates into the chosen host document's coordinates. Falls back to the local
+ * document if any ancestor is cross-origin.
+ */
+const getPanelRenderContext = () => {
+  let win = window;
+  let offsetX = 0;
+  let offsetY = 0;
+  while (win !== win.top) {
+    let frame;
+    let parentWin;
+    try {
+      frame = win.frameElement;
+      parentWin = win.parent;
+      // Accessing .document on a cross-origin window throws.
+      void parentWin.document;
+    } catch (e) {
+      break;
+    }
+    if (!frame) break;
+    const frameRect = frame.getBoundingClientRect();
+    offsetX += frameRect.left;
+    offsetY += frameRect.top;
+    win = parentWin;
+  }
+  return { doc: win.document, win, offsetX, offsetY };
+};
+
 const showAutofillPanel = async (element, template, variables) => {
   // Get language from settings first (outside Promise)
   const settings = await storage.getSettings();
@@ -342,33 +407,80 @@ const showAutofillPanel = async (element, template, variables) => {
     
     const panel = document.createElement('div');
     panel.className = 'magical-autofill-panel';
+    const themeChoice = settings.theme || 'system';
+    const effectiveTheme = themeChoice === 'system'
+      ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : themeChoice;
+    panel.setAttribute('data-theme', effectiveTheme);
     panel.innerHTML = `
       <h4>${t.fillInfo}</h4>
-      ${variables.map(v => `
-        <div class="form-group">
-          <label for="magical-${v}">${formatVariableName(v)}</label>
-          <input type="text" 
-                 id="magical-${v}" 
-                 placeholder="Enter ${formatVariableName(v).toLowerCase()}"
-                 value="${getVariableValue(v)}">
-        </div>
-      `).join('')}
+      <div class="magical-autofill-content">
+        ${variables.map(v => `
+          <div class="form-group">
+            <label for="magical-${v}">${formatVariableName(v)}</label>
+            <input type="text"
+                   id="magical-${v}"
+                   name="magical-field-${v}-${Date.now()}"
+                   placeholder="Enter ${formatVariableName(v).toLowerCase()}"
+                   value="${getVariableValue(v)}"
+                   autocomplete="off"
+                   autocorrect="off"
+                   autocapitalize="off"
+                   spellcheck="false"
+                   data-lpignore="true"
+                   data-1p-ignore="true"
+                   data-form-type="other">
+          </div>
+        `).join('')}
+      </div>
       <div class="button-group">
-        <button id="magical-submit">${t.insert}</button>
-        <button class="secondary" id="magical-cancel">${t.cancel}</button>
+        <button type="button" id="magical-submit">${t.insert}</button>
+        <button type="button" class="secondary" id="magical-cancel">${t.cancel}</button>
       </div>
     `;
 
+    // Render into the top-most accessible document so the panel gets the full page
+    // viewport, not a cramped iframe (e.g. a small Kendo Editor comment box).
+    const renderCtx = getPanelRenderContext();
+    const hostDoc = renderCtx.doc;
+    const hostWin = renderCtx.win;
+
+    hostDoc.body.appendChild(panel);
     const rect = element.getBoundingClientRect();
-    panel.style.top = `${rect.bottom + 5}px`;
-    panel.style.left = `${rect.left}px`;
-    document.body.appendChild(panel);
+    const panelRect = panel.getBoundingClientRect();
+    const scrollX = hostWin.scrollX;
+    const scrollY = hostWin.scrollY;
+    const viewportH = hostWin.innerHeight;
+    const viewportW = hostWin.innerWidth;
+    const gap = 8;
+    let top = rect.bottom + renderCtx.offsetY + scrollY + gap;
+    let left = rect.left + renderCtx.offsetX + scrollX;
+    if (top + panelRect.height > scrollY + viewportH - gap) {
+      top = rect.top + renderCtx.offsetY + scrollY - panelRect.height - gap;
+    }
+    if (top < scrollY + gap) top = scrollY + gap;
+    if (left + panelRect.width > scrollX + viewportW - gap) {
+      left = scrollX + viewportW - panelRect.width - gap;
+    }
+    if (left < scrollX + gap) left = scrollX + gap;
+    panel.style.top = `${top}px`;
+    panel.style.left = `${left}px`;
 
     const submitBtn = panel.querySelector('#magical-submit');
     const cancelBtn = panel.querySelector('#magical-cancel');
 
+    let outsideClickHandler = null;
+    let cleaned = false;
     const cleanup = () => {
-      document.body.removeChild(panel);
+      if (cleaned) return;
+      cleaned = true;
+      if (outsideClickHandler) {
+        hostDoc.removeEventListener('click', outsideClickHandler);
+        outsideClickHandler = null;
+      }
+      if (panel.parentNode) {
+        panel.parentNode.removeChild(panel);
+      }
     };
 
     submitBtn.addEventListener('click', async () => {
@@ -376,7 +488,7 @@ const showAutofillPanel = async (element, template, variables) => {
       variables.forEach(v => {
         const input = panel.querySelector(`#magical-${v}`);
         const value = input.value.trim();
-        
+
         // Save to appropriate location
         if (v === 'first_name' || v === 'last_name' || v === 'email') {
           newProfile[v] = value;
@@ -398,14 +510,13 @@ const showAutofillPanel = async (element, template, variables) => {
 
     // Close on outside click
     setTimeout(() => {
-      const handleClick = (e) => {
+      outsideClickHandler = (e) => {
         if (!panel.contains(e.target)) {
           cleanup();
           resolve(null);
-          document.removeEventListener('click', handleClick);
         }
       };
-      document.addEventListener('click', handleClick);
+      hostDoc.addEventListener('click', outsideClickHandler);
     }, 100);
   });
 };
@@ -982,6 +1093,10 @@ const getTextAndCursorFromContentEditable = (element) => {
 };
 
 const handleKeyDown = async (e) => {
+  if (!isExtensionContextValid()) {
+    teardownOnInvalidatedContext();
+    return;
+  }
   if (templates.length === 0) return;
   let element = e.target;
   if (!element || typeof element.tagName !== 'string') return;
@@ -1214,6 +1329,7 @@ const elementValueTracker = new WeakMap();
 
 // Handle input events as fallback (for sites that prevent keydown)
 const handleInput = async (e) => {
+  if (!isExtensionContextValid()) return;
   const element = e.target;
   if (!element || (element.tagName !== 'INPUT' && element.tagName !== 'TEXTAREA')) return;
   if (element.type === 'password') return;
